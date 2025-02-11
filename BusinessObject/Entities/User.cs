@@ -28,6 +28,15 @@ namespace BusinessObject.Entities
         [StringLength(250)]
         public string Address { get; set; }
 
+        public DateTime? BirhDay {  get; set; }
+        [MaxLength(20)]
+        public string? Gender {  get; set; }
+
+        [MaxLength(255)]
+        public string? Avatar {  get; set; }
+        [MaxLength(100)]
+        public int? CitizenID {  get; set; }
+
         [Required]
         [StringLength(250)]
         public string PasswordHash { get; set; }

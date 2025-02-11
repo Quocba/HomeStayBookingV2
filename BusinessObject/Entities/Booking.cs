@@ -1,0 +1,38 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using BusinessObject.Common;
+using BusinessObject.Shares;
+
+namespace BusinessObject.Entities
+{
+    [Table("Booking")]
+    public class Booking : BaseEntity<Guid>
+    {
+        public DateTime CheckInDate { get; set; }
+
+        public DateTime CheckOutDate { get; set; }
+
+        public Decimal TotalPrice {  get; set; }
+
+        public Decimal UnitPrice {  get; set; }
+
+        public String Status {  get; set; }
+
+        public String? ReasonCancel {  get; set; }
+        public bool isDeleted { get; set; } = false;
+
+        [ForeignKey("UserID")]
+        public User User { get; set; }
+
+        [ForeignKey("VoucherID")]
+        public Voucher Voucher { get; set; }
+       
+        [ForeignKey("HomeStayID")]
+        public HomeStay HomeStay { get; set; }
+    }
+}

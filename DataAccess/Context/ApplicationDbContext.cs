@@ -14,10 +14,25 @@ namespace DataAccess.Context
         public DbSet<Role> Roles { get; set; }
         public DbSet<EmailConfirmationToken> EmailConfirmationTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Voucher> Voucher { get; set; }
+        public DbSet<UserVoucher> UserVouchers { get; set; }
+        public DbSet<PostImage> PostImages { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<HomeStayImage> HomeStayImages { get; set; }
+        public DbSet<HomestayAmenity>HomestayAmenities { get; set; }
+        public DbSet<HomeStay> HomeStays { get; set; }
+        public DbSet<FeedBack> FeedBacks { get; set; }
+        public DbSet<CommentPost> CommentPosts { get; set; }
+        public DbSet<Calendar> Calendars {  get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Amennity> Amennities {  get; set; } 
+        
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<UserVoucher>().HasKey(u => new { u.UserID, u.VoucherID });
+            builder.Entity<HomestayAmenity>().HasKey(h => new {h.AmenityID, h.HomeStayID});
             builder.Entity<Role>()
                 .HasData(
                     new Role() { Id = 1, Name = "Admin" },
