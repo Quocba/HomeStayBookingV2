@@ -1,5 +1,6 @@
 ﻿using BusinessObject.DTO;
 using BusinessObject.Entities;
+using BusinessObject.Exceptions;
 using BusinessObject.Interfaces;
 using BusinessObject.Shares;
 using BusinessObject.Wrappers;
@@ -123,14 +124,62 @@ namespace DataAccess.Repositories
             return true;
         }
 
-        public Task<UserResponse> GetUser(Guid id)
+        public async Task<PagedResponse<List<UserListResponse>>> GetUsers(PagedRequest request)
         {
-            throw new NotImplementedException();
-        }
+            var query = _context.Users
+                .Where(u => !u.IsDeleted)
+                .Include(u => u.Role)
+                .OrderBy(u => u.FullName)
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize);
 
-        public Task<PagedResponse<List<UserListResponse>>> GetUsers(PagedRequest request)
+            var users = await query
+                .Select(u => new UserListResponse
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    Role = u.Role.Name
+                })
+                .ToListAsync();
+
+            var totalRecords = await _context.Users
+                .CountAsync(u => !u.IsDeleted);
+
+            var response = new PagedResponse<List<UserListResponse>>(
+                users,
+                request.PageNumber,
+                request.PageSize,
+                (int)Math.Ceiling((double)totalRecords / request.PageSize)
+            );
+
+            return response;
+        }
+        public async Task<UserResponse> GetUser(Guid id)
         {
-            throw new NotImplementedException();
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Id == id)
+                .Select(u => new UserResponse
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    Phone = u.Phone,
+                    Address = u.Address,
+                    IsEmailConfirmed = u.IsEmailConfirmed,
+                    IsDeleted = u.IsDeleted,
+                    RoleId = u.RoleId,
+                    Role = u.Role.Name
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                throw new NotFoundException("User not found");
+            }
+
+            return user;
         }
     }
 }
