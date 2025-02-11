@@ -137,7 +137,7 @@ namespace API.Controllers
             await _userRepository.SaveAsync();
 
             string url = _configuration["Base:UrlClient"] ?? string.Empty;
-            string content = url + "/api/v1/auth/reset-password?userId=" + existingUser.Id + "&code=" + code;
+            string content = url + "/api/auth/reset-password?userId=" + existingUser.Id + "&code=" + code;
 
             await _emailSender.SendEmailAsync(existingUser.Email, "Forgot password", content);
             return Ok(new { message = "Email sent" });
