@@ -13,27 +13,28 @@ namespace API.Controllers
         IRepository<User> _userRepository,
         IRepository<HomeStayImage> _homeStayImageRepository,
         IRepository<Calendar> _calendarRepository,
-        IWebHostEnvironment _eviroment) : ControllerBase
+        IWebHostEnvironment _eviroment,
+        IRepository<Amennity> _amenityRepository,
+        IRepository<HomestayAmenity> _homeStayAmenity) : ControllerBase
     {
         [HttpPost("add-home-stay")]
-        public async Task<IActionResult> AddHomeStay([FromForm]AddHomeStayRequest request)
+        public async Task<IActionResult> AddHomeStay([FromHeader(Name = "X-User-Id")] Guid userID,[FromBody]AddHomeStayRequest request)
         {
 
-            Guid userID = Guid.Parse("ddb60060-fd7f-482d-8c43-3d2534aafe19");
-            var user = await _userRepository.GetByIdAsync(userID);
-            var mainImageTask = Task.Run(() => Util.SaveImage(request.MainImage, _eviroment));
-            Guid homeStayID = Guid.NewGuid();
+                var user = await _userRepository.GetByIdAsync(userID);
+         
+                Guid homeStayID = Guid.NewGuid();
                 HomeStay createHomeStay = new HomeStay
                 {
                     Id = homeStayID,
-                    MainImage = await mainImageTask,
+                    MainImage = request.MainImage,
                     Name = request.Name,
                     Description = request.Description,
                     Address = request.Address,
                     CheckInTime = request.CheckInTime,
                     CheckOutTime = request.CheckOutTime,
                     isBooked = request.isBlocked,
-                    isDeleted = request.isDeleted,
+                    isDeleted = request.IsDeleted,
                     City = request.City,
                     OpenIn = request.OpenIn,
                     Standar = request.Standar,
@@ -44,28 +45,75 @@ namespace API.Controllers
                 {
                     Date = request.Date,
                     Price = request.Price,
-                    isDeleted = request.isDeleted,
+                    isDeleted = request.IsDeleted,
                     Stay = createHomeStay
                 });
 
             foreach (var image in request.Images)
                 {
-                    Guid imageID = new Guid();
+                    Guid imageID = Guid.NewGuid();
                     HomeStayImage addImage = new HomeStayImage
                     {
                         Id = imageID,
-                        Image = Util.SaveImage(image, _eviroment),
+                        Image = image,
                         HomeStay = createHomeStay
                     };
 
                     await _homeStayImageRepository.AddAsync(addImage);
                 }
                     await _homeStayImageRepository.SaveAsync();
-
+                
 
             return Ok(new { message = "Add Home Stay Success." });
             }
-  
+
+        [HttpOptions("add-home-stay-amenity")]
+        public async Task<IActionResult> AddHomeStayAmennity([FromBody]AddAmenityDTO request)
+        {
+            var getHomeStay = await _homeStayRepository.GetByIdAsync(request.HomeStayID);
+            if (getHomeStay == null) return NotFound();
+            foreach (var amentity in request.AmenityName)
+            {
+                var getAmenity = await _amenityRepository.Find(n => n.Name.Equals(amentity)).FirstOrDefaultAsync();
+                HomestayAmenity addAmenity = new HomestayAmenity
+                {
+                    HomeStay  = getHomeStay,
+                    Amennity = getAmenity
+                };
+             await _homeStayAmenity.AddAsync(addAmenity);
+             await _homeStayAmenity.SaveAsync();
+            }
+            return Ok(new { Message = "Add Amentity Success" });
         }
+
+        [HttpPut("edit-home-stay-information")]
+        public async Task<IActionResult> EditHomeStay([FromBody]EditHomeStayInforRequest request)
+        {
+            try
+            {
+                var getHomeStay = await _homeStayRepository.GetByIdAsync(request.HomeStayID);
+                if (getHomeStay == null)
+                {
+                    return NotFound();
+                }
+                getHomeStay.Name = request.Name ?? getHomeStay.Name;
+                getHomeStay.MainImage = request.MainImage ?? getHomeStay.MainImage;
+                getHomeStay.Standar = getHomeStay.Standar = request.Standar != 0 ? request.Standar : getHomeStay.Standar;
+                getHomeStay.CheckOutTime = request.CheckOutTime ?? getHomeStay.CheckOutTime;
+                getHomeStay.CheckInTime = request.CheckInTime ?? getHomeStay.CheckInTime;
+                getHomeStay.Address = request.Address ?? getHomeStay.Address;
+                getHomeStay.OpenIn = request.OpenIn = request.OpenIn != 0 ? request.OpenIn : getHomeStay.OpenIn;
+                getHomeStay.Description = request.Description ?? getHomeStay.Description    ;
+                await _homeStayRepository.UpdateAsync(getHomeStay);
+                await _homeStayRepository.SaveAsync();
+                return Ok(new { Message = "Update Home Stay Success" });
+            }
+            catch (Exception ex) {
+                return StatusCode(500, new { Message = "An error occurred", Error = ex.Message });
+            }
+        }
+
+    
+     }
 }
 

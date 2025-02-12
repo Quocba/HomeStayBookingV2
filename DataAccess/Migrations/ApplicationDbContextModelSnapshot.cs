@@ -63,10 +63,12 @@ namespace DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
@@ -101,7 +103,8 @@ namespace DataAccess.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
@@ -252,6 +255,9 @@ namespace DataAccess.Migrations
                     b.Property<int>("Standar")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("UserID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("isBooked")
                         .HasColumnType("bit");
 
@@ -259,6 +265,8 @@ namespace DataAccess.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserID");
 
                     b.ToTable("HomeStay");
                 });
@@ -276,9 +284,6 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("ImageID")
-                        .HasColumnType("int");
 
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
@@ -515,13 +520,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("d87b4b72-609b-4979-b758-7771481da883"),
                             Address = "Ninh Kiều, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 11, 23, 28, 16, 163, DateTimeKind.Utc).AddTicks(9432),
+                            CreatedAt = new DateTime(2025, 2, 12, 22, 2, 23, 372, DateTimeKind.Utc).AddTicks(1559),
                             Email = "admin@gmail.com",
                             FullName = "admin",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 11, 23, 28, 16, 163, DateTimeKind.Utc).AddTicks(9440),
-                            PasswordHash = "$2a$11$nihmuFapYmJUW9MsBzyKfO9/wAhLmEmVsk872fXPJt9WvBaQb4ik2",
+                            LastModifiedAt = new DateTime(2025, 2, 12, 22, 2, 23, 372, DateTimeKind.Utc).AddTicks(1567),
+                            PasswordHash = "$2a$11$gSbzbIZHA9tFov91nTRTeeZeeIBv9BGeRLMYevIGr5QKRm6nG8z3W",
                             Phone = "0987654321",
                             RoleId = 1
                         },
@@ -529,13 +534,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"),
                             Address = "Bình Thủy, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 11, 23, 28, 16, 278, DateTimeKind.Utc).AddTicks(2464),
+                            CreatedAt = new DateTime(2025, 2, 12, 22, 2, 23, 486, DateTimeKind.Utc).AddTicks(8601),
                             Email = "staff@gmail.com",
                             FullName = "staff",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 11, 23, 28, 16, 278, DateTimeKind.Utc).AddTicks(2477),
-                            PasswordHash = "$2a$11$Oecs54ZTQsw1oEFC0ALr3.Pcca0cve8q.k5NPnJmwgEgm6k/qCZre",
+                            LastModifiedAt = new DateTime(2025, 2, 12, 22, 2, 23, 486, DateTimeKind.Utc).AddTicks(8612),
+                            PasswordHash = "$2a$11$CEL9Lg4ftpr.TJYtpwOl5OtLQqLgWxO1TcQ5QvvJRjdPLO7R91udK",
                             Phone = "0987654123",
                             RoleId = 2
                         },
@@ -543,13 +548,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"),
                             Address = "Phong Điền, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 11, 23, 28, 16, 393, DateTimeKind.Utc).AddTicks(4150),
+                            CreatedAt = new DateTime(2025, 2, 12, 22, 2, 23, 604, DateTimeKind.Utc).AddTicks(3038),
                             Email = "user@gmail.com",
                             FullName = "user",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 11, 23, 28, 16, 393, DateTimeKind.Utc).AddTicks(4167),
-                            PasswordHash = "$2a$11$dq3w1V.pzmIMGvNUfOqndOA0SP8FRXn6MNSvl6JqAxv4VKEW8jfmG",
+                            LastModifiedAt = new DateTime(2025, 2, 12, 22, 2, 23, 604, DateTimeKind.Utc).AddTicks(3048),
+                            PasswordHash = "$2a$11$KLO5ZvGsw7V/IbcoeTWrVuy2AWD2NlpM2R3lJa.jd/F91qB4CaTfq",
                             Phone = "0987654312",
                             RoleId = 3
                         });
@@ -619,19 +624,19 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.HomeStay", "HomeStay")
                         .WithMany()
                         .HasForeignKey("HomeStayID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Entities.Voucher", "Voucher")
                         .WithMany()
                         .HasForeignKey("VoucherID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("HomeStay");
@@ -646,7 +651,7 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.HomeStay", "Stay")
                         .WithMany()
                         .HasForeignKey("HomeStayID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Stay");
@@ -661,13 +666,13 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.Post", "Post")
                         .WithMany()
                         .HasForeignKey("PostID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Post");
@@ -682,7 +687,7 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -693,16 +698,27 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.HomeStay", "HomeStay")
                         .WithMany()
                         .HasForeignKey("HomeStayID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("HomeStay");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.HomeStay", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -712,7 +728,7 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.HomeStay", "HomeStay")
                         .WithMany()
                         .HasForeignKey("HomeStayID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("HomeStay");
@@ -723,13 +739,13 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.Amennity", "Amennity")
                         .WithMany()
                         .HasForeignKey("AmennityId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Entities.HomeStay", "HomeStay")
                         .WithMany()
                         .HasForeignKey("HomeStayID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Amennity");
@@ -742,7 +758,7 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -753,7 +769,7 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.Post", "Post")
                         .WithMany()
                         .HasForeignKey("PostID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Post");
@@ -764,7 +780,7 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.User", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -775,7 +791,7 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Role");
@@ -786,13 +802,13 @@ namespace DataAccess.Migrations
                     b.HasOne("BusinessObject.Entities.User", "user")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Entities.Voucher", "voucher")
                         .WithMany()
                         .HasForeignKey("VoucherID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("user");

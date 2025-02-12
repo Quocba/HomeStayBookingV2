@@ -3,12 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DataAccess.Context
 {
-    public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -33,6 +34,19 @@ namespace DataAccess.Context
 
             builder.Entity<UserVoucher>().HasKey(u => new { u.UserID, u.VoucherID });
             builder.Entity<HomestayAmenity>().HasKey(h => new {h.AmenityID, h.HomeStayID});
+            builder.Entity<Booking>()
+            .Property(b => b.TotalPrice)
+            .HasPrecision(18, 4);
+
+            builder.Entity<Booking>()
+                .Property(b => b.UnitPrice)
+            .HasPrecision(18, 4);
+
+            builder.Entity<Calendar>()
+                .Property(c => c.Price)
+            .HasPrecision(18, 4);
+
+            base.OnModelCreating(builder);
             builder.Entity<Role>()
                 .HasData(
                     new Role() { Id = 1, Name = "Admin" },

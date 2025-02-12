@@ -12,8 +12,6 @@ namespace BusinessObject.Entities
     [Table("HomeStayImage")]
     public class HomeStayImage : BaseEntity<Guid>
     {
-        public int ImageID {  get; set; }
-
         [MaxLength(255)]
         public string Image {  get; set; }
 

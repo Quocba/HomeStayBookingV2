@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class dbinit1 : Migration
+    public partial class dbinit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,28 +24,6 @@ namespace DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Amenity", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "HomeStay",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    MainImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    OpenIn = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Standar = table.Column<int>(type: "int", nullable: false),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    City = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    isBooked = table.Column<bool>(type: "bit", nullable: false),
-                    CheckInTime = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    CheckOutTime = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HomeStay", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -81,74 +59,6 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Calendar",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Calendar", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Calendar_HomeStay_HomeStayID",
-                        column: x => x.HomeStayID,
-                        principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "HomestayAmenity",
-                columns: table => new
-                {
-                    AmenityID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AmennityId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HomestayAmenity", x => new { x.AmenityID, x.HomeStayID });
-                    table.ForeignKey(
-                        name: "FK_HomestayAmenity_Amenity_AmennityId",
-                        column: x => x.AmennityId,
-                        principalTable: "Amenity",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_HomestayAmenity_HomeStay_HomeStayID",
-                        column: x => x.HomeStayID,
-                        principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "HomeStayImage",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ImageID = table.Column<int>(type: "int", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HomeStayImage", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_HomeStayImage_HomeStay_HomeStayID",
-                        column: x => x.HomeStayID,
-                        principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -180,45 +90,6 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Booking",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CheckInDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CheckOutDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ReasonCancel = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VoucherID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Booking", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Booking_HomeStay_HomeStayID",
-                        column: x => x.HomeStayID,
-                        principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_Booking_Users_UserID",
-                        column: x => x.UserID,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_Booking_Voucher_VoucherID",
-                        column: x => x.VoucherID,
-                        principalTable: "Voucher",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "EmailConfirmationTokens",
                 columns: table => new
                 {
@@ -239,27 +110,28 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FeedBack",
+                name: "HomeStay",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MainImage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    OpenIn = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Standar = table.Column<int>(type: "int", nullable: false),
                     isDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    City = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    isBooked = table.Column<bool>(type: "bit", nullable: false),
+                    CheckInTime = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    CheckOutTime = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FeedBack", x => x.Id);
+                    table.PrimaryKey("PK_HomeStay", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_FeedBack_HomeStay_HomeStayID",
-                        column: x => x.HomeStayID,
-                        principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_FeedBack_Users_UserID",
+                        name: "FK_HomeStay_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -337,6 +209,140 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Booking",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CheckInDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CheckOutDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReasonCancel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VoucherID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Booking", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Booking_HomeStay_HomeStayID",
+                        column: x => x.HomeStayID,
+                        principalTable: "HomeStay",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Booking_Users_UserID",
+                        column: x => x.UserID,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Booking_Voucher_VoucherID",
+                        column: x => x.VoucherID,
+                        principalTable: "Voucher",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Calendar",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Calendar", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Calendar_HomeStay_HomeStayID",
+                        column: x => x.HomeStayID,
+                        principalTable: "HomeStay",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FeedBack",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FeedBack", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FeedBack_HomeStay_HomeStayID",
+                        column: x => x.HomeStayID,
+                        principalTable: "HomeStay",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_FeedBack_Users_UserID",
+                        column: x => x.UserID,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HomestayAmenity",
+                columns: table => new
+                {
+                    AmenityID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AmennityId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HomestayAmenity", x => new { x.AmenityID, x.HomeStayID });
+                    table.ForeignKey(
+                        name: "FK_HomestayAmenity_Amenity_AmennityId",
+                        column: x => x.AmennityId,
+                        principalTable: "Amenity",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_HomestayAmenity_HomeStay_HomeStayID",
+                        column: x => x.HomeStayID,
+                        principalTable: "HomeStay",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HomeStayImage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HomeStayImage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HomeStayImage_HomeStay_HomeStayID",
+                        column: x => x.HomeStayID,
+                        principalTable: "HomeStay",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CommentPost",
                 columns: table => new
                 {
@@ -405,9 +411,9 @@ namespace DataAccess.Migrations
                 columns: new[] { "Id", "Address", "Avatar", "BirhDay", "CitizenID", "CreatedAt", "Email", "FullName", "Gender", "IsDeleted", "IsEmailConfirmed", "LastModifiedAt", "PasswordHash", "Phone", "RoleId" },
                 values: new object[,]
                 {
-                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Bình Thủy, Cần Thơ", null, null, null, new DateTime(2025, 2, 11, 23, 28, 16, 278, DateTimeKind.Utc).AddTicks(2464), "staff@gmail.com", "staff", null, false, true, new DateTime(2025, 2, 11, 23, 28, 16, 278, DateTimeKind.Utc).AddTicks(2477), "$2a$11$Oecs54ZTQsw1oEFC0ALr3.Pcca0cve8q.k5NPnJmwgEgm6k/qCZre", "0987654123", 2 },
-                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Phong Điền, Cần Thơ", null, null, null, new DateTime(2025, 2, 11, 23, 28, 16, 393, DateTimeKind.Utc).AddTicks(4150), "user@gmail.com", "user", null, false, true, new DateTime(2025, 2, 11, 23, 28, 16, 393, DateTimeKind.Utc).AddTicks(4167), "$2a$11$dq3w1V.pzmIMGvNUfOqndOA0SP8FRXn6MNSvl6JqAxv4VKEW8jfmG", "0987654312", 3 },
-                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Ninh Kiều, Cần Thơ", null, null, null, new DateTime(2025, 2, 11, 23, 28, 16, 163, DateTimeKind.Utc).AddTicks(9432), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 2, 11, 23, 28, 16, 163, DateTimeKind.Utc).AddTicks(9440), "$2a$11$nihmuFapYmJUW9MsBzyKfO9/wAhLmEmVsk872fXPJt9WvBaQb4ik2", "0987654321", 1 }
+                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Bình Thủy, Cần Thơ", null, null, null, new DateTime(2025, 2, 12, 22, 2, 23, 486, DateTimeKind.Utc).AddTicks(8601), "staff@gmail.com", "staff", null, false, true, new DateTime(2025, 2, 12, 22, 2, 23, 486, DateTimeKind.Utc).AddTicks(8612), "$2a$11$CEL9Lg4ftpr.TJYtpwOl5OtLQqLgWxO1TcQ5QvvJRjdPLO7R91udK", "0987654123", 2 },
+                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Phong Điền, Cần Thơ", null, null, null, new DateTime(2025, 2, 12, 22, 2, 23, 604, DateTimeKind.Utc).AddTicks(3038), "user@gmail.com", "user", null, false, true, new DateTime(2025, 2, 12, 22, 2, 23, 604, DateTimeKind.Utc).AddTicks(3048), "$2a$11$KLO5ZvGsw7V/IbcoeTWrVuy2AWD2NlpM2R3lJa.jd/F91qB4CaTfq", "0987654312", 3 },
+                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Ninh Kiều, Cần Thơ", null, null, null, new DateTime(2025, 2, 12, 22, 2, 23, 372, DateTimeKind.Utc).AddTicks(1559), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 2, 12, 22, 2, 23, 372, DateTimeKind.Utc).AddTicks(1567), "$2a$11$gSbzbIZHA9tFov91nTRTeeZeeIBv9BGeRLMYevIGr5QKRm6nG8z3W", "0987654321", 1 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -458,6 +464,11 @@ namespace DataAccess.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_FeedBack_UserID",
                 table: "FeedBack",
+                column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HomeStay_UserID",
+                table: "HomeStay",
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
