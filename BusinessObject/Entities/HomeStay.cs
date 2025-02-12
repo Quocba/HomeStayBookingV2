@@ -40,5 +40,8 @@ namespace BusinessObject.Entities
 
         [MaxLength(255)]
         public string CheckOutTime { get; set; }
+
+        [ForeignKey("UserID")]
+        public User User { get; set; }
     }
 }

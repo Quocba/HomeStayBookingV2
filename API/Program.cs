@@ -15,6 +15,7 @@ using BusinessObject.Interfaces;
 using DataAccess.Repositories;
 using BusinessObject.Settings;
 using DataAccess.EmailHandler;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,7 +122,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "images")),
+    RequestPath = "/images"
+});
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
