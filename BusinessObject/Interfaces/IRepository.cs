@@ -17,6 +17,8 @@ namespace BusinessObject.Interfaces
         Task SaveAsync();
         Task<IQueryable<T>> FindAsync(Expression<Func<T, bool>> predicate);
         IQueryable<T> Find(Expression<Func<T, bool>> predicate);
+        IQueryable<T> FindWithInclude(params Expression<Func<T, object>>[] includes);
         Task AddRangeAsync(IEnumerable<T> entities);
+        void DeleteRange(IEnumerable<T> entities);
     }
 }

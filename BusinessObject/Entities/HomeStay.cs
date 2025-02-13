@@ -43,5 +43,9 @@ namespace BusinessObject.Entities
 
         [ForeignKey("UserID")]
         public User User { get; set; }
+
+        public ICollection<HomestayAmenity>? HomestayAmenities { get; set; }
+        public ICollection<HomeStayImage>? HomestayImages { get; set; }
+        public ICollection<Calendar>? Calendars { get; set; }
     }
 }

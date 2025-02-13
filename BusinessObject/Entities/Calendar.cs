@@ -15,7 +15,7 @@ namespace BusinessObject.Entities
         public Decimal Price {  get; set; }
 
         [ForeignKey("HomeStayID")]
-        public HomeStay Stay { get; set; }
+        public HomeStay HomeStay { get; set; }
 
         public bool isDeleted {  get; set; } = false;
     }

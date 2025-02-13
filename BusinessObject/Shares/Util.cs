@@ -16,5 +16,16 @@ namespace BusinessObject.Shares
             int code = random.Next(100000, 1000000);
             return code.ToString();
         }
+
+        public static string GenerateRandomString(int length = 6, bool includeNumbers = false)
+        {
+            Random random = new Random();
+            string chars = includeNumbers
+                ? "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+                : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
     }
 }

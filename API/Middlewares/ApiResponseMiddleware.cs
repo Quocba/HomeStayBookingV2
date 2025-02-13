@@ -17,11 +17,18 @@ namespace API.Middlewares
             {
                 await _next(context);
 
+                if (context.Response.ContentType?.StartsWith("application/vnd.openxmlformats-officedocument") == true)
+                {
+                    responseBody.Seek(0, SeekOrigin.Begin);
+                    await responseBody.CopyToAsync(originalBodyStream);
+                    return;
+                }
+
                 context.Response.Body = originalBodyStream;
 
                 var statusCode = context.Response.StatusCode;
                 var isSuccess = statusCode >= 200 && statusCode < 300;
-
+              
                 responseBody.Seek(0, SeekOrigin.Begin);
                 var bodyContent = await new StreamReader(responseBody).ReadToEndAsync();
 

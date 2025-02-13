@@ -10,8 +10,8 @@ namespace BusinessObject.Entities
     [Table("HomestayAmenity")]
     public class HomestayAmenity
     {
-        public Guid AmenityID {  get; set; }
-        public Amennity Amennity { get; set; }
+        public Guid AmenityId { get; set; }
+        public Amenity Amenity { get; set; }
         public Guid HomeStayID {  get; set; }
         public HomeStay HomeStay { get; set; }
         public bool isDeleted { get; set; } = false;

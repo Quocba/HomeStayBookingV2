@@ -57,5 +57,20 @@ namespace DataAccess.Repositories
         {
             await _dbSet.AddRangeAsync(entities);
         }
+
+        public IQueryable<T> FindWithInclude(params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return query;
+        }
+
+        public void DeleteRange(IEnumerable<T> entities)
+        {
+            _dbSet.RemoveRange(entities);
+        }
     }
 }

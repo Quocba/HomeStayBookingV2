@@ -26,14 +26,15 @@ namespace DataAccess.Context
         public DbSet<CommentPost> CommentPosts { get; set; }
         public DbSet<Calendar> Calendars {  get; set; }
         public DbSet<Booking> Bookings { get; set; }
-        public DbSet<Amennity> Amennities {  get; set; } 
+        public DbSet<Amenity> Amennities {  get; set; } 
         
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
             builder.Entity<UserVoucher>().HasKey(u => new { u.UserID, u.VoucherID });
-            builder.Entity<HomestayAmenity>().HasKey(h => new {h.AmenityID, h.HomeStayID});
+            builder.Entity<HomestayAmenity>().HasKey(ha => new { ha.HomeStayID, ha.AmenityId });
+              
             builder.Entity<Booking>()
             .Property(b => b.TotalPrice)
             .HasPrecision(18, 4);

@@ -10,7 +10,7 @@ using BusinessObject.Common;
 namespace BusinessObject.Entities
 {
     [Table("Amenity")]
-    public class Amennity : BaseEntity<Guid>
+    public class Amenity : BaseEntity<Guid>
     {
         public string Name {  get; set; }
         public bool isDeleted { get; set; } = false;

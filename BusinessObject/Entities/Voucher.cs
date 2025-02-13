@@ -27,8 +27,8 @@ namespace BusinessObject.Entities
 
         public int QuantityUsed {  get; set; }
 
-        public DateTime StartDate { get; set; } = DateUtility.GetCurrentDateTime();
-        public DateTime EndDate { get; set; } = DateUtility.GetCurrentDateTime();
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public bool isDeleted {  get; set; } = false;
     }
