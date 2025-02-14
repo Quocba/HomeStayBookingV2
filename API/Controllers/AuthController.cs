@@ -21,6 +21,13 @@ namespace API.Controllers
         , IEmailSender _emailSender
         , IConfiguration _configuration) : ControllerBase
     {
+
+        [HttpGet("get-me")]
+        public async Task<IActionResult> Get([FromHeader(Name = "X-User-Id")] Guid userId)
+        {
+            return Ok(await _userRepository.GetUser(userId));
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO command)
         {
@@ -74,7 +81,8 @@ namespace API.Controllers
                 Email = user.Email,
                 FullName = user.FullName,
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                Role = user.Role.Name
             };
             if (response == null) return Unauthorized();
             return Ok(response);
