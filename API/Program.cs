@@ -73,6 +73,8 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
+builder.Services.AddScoped<IGoogleLoginService, GoogleLoginService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
