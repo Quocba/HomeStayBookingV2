@@ -47,6 +47,12 @@ namespace BusinessObject.Entities
         public int RoleId { get; set; }
         public Role Role { get; set; }
         public ICollection<RefreshToken> RefreshTokens { get; set; }
+        public ICollection<FeedBack> FeedBacks { get; set; }
+        public ICollection<UserVoucher> UserVouchers { get; set; }
+        public ICollection<Post> Posts { get; set; }
+        public ICollection<Booking> Bookings { get; set; }
+        public ICollection<CommentPost> CommentPosts { get; set; }
+        public ICollection<HomeStay> HomeStays { get; set; }
         public DateTime CreatedAt { get; set; } = DateUtility.GetCurrentDateTime();
         public DateTime? LastModifiedAt { get; set; } = DateUtility.GetCurrentDateTime();
     }

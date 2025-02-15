@@ -15,6 +15,7 @@ namespace BusinessObject.Entities
 
         [MaxLength(255)]
         public string Image {  get; set; }
+        public Guid PostID { get; set; }
 
         [ForeignKey("PostID")]
         public Post Post { get; set; }

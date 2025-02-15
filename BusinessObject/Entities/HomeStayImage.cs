@@ -14,6 +14,7 @@ namespace BusinessObject.Entities
     {
         [MaxLength(255)]
         public string Image {  get; set; }
+        public Guid HomeStayID { get; set; }
 
         [ForeignKey("HomeStayID")]
         public HomeStay HomeStay { get; set; }

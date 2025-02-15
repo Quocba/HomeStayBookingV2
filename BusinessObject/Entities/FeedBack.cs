@@ -15,14 +15,12 @@ namespace BusinessObject.Entities
         public string Description {  get; set; }
         public bool isDeleted { get; set; } = false;
 
+        public Guid UserID { get; set; }
         [ForeignKey("UserID")]
         public User User { get; set; }
 
         [ForeignKey("HomeStayID")]
         public HomeStay HomeStay { get; set; }
-
-
-
 
     }
 }

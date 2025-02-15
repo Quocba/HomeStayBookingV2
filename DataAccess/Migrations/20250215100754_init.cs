@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class dbinit : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,19 +24,6 @@ namespace DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Amenity", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "HomestayAmenity",
-                columns: table => new
-                {
-                    AmenityID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HomestayAmenity", x => new { x.HomeStayID, x.AmenityID });
                 });
 
             migrationBuilder.CreateTable(
@@ -78,8 +65,8 @@ namespace DataAccess.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Phone = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     BirhDay = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Avatar = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
@@ -98,8 +85,31 @@ namespace DataAccess.Migrations
                         name: "FK_Users_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Booking",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CheckInDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CheckOutDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReasonCancel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Booking", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Booking_Users_UserID",
+                        column: x => x.UserID,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -118,8 +128,7 @@ namespace DataAccess.Migrations
                         name: "FK_EmailConfirmationTokens_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -133,7 +142,7 @@ namespace DataAccess.Migrations
                     Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Standar = table.Column<int>(type: "int", nullable: false),
                     isDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     City = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     isBooked = table.Column<bool>(type: "bit", nullable: false),
                     CheckInTime = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
@@ -147,8 +156,7 @@ namespace DataAccess.Migrations
                         name: "FK_HomeStay_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -172,8 +180,7 @@ namespace DataAccess.Migrations
                         name: "FK_Post_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -192,8 +199,7 @@ namespace DataAccess.Migrations
                         name: "FK_RefreshTokens_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -211,53 +217,12 @@ namespace DataAccess.Migrations
                         name: "FK_UserVoucher_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_UserVoucher_Voucher_VoucherID",
                         column: x => x.VoucherID,
                         principalTable: "Voucher",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Booking",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CheckInDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CheckOutDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ReasonCancel = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VoucherID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Booking", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Booking_HomeStay_HomeStayID",
-                        column: x => x.HomeStayID,
-                        principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_Booking_Users_UserID",
-                        column: x => x.UserID,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_Booking_Voucher_VoucherID",
-                        column: x => x.VoucherID,
-                        principalTable: "Voucher",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -268,17 +233,22 @@ namespace DataAccess.Migrations
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
                     HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BookingID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     isDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Calendar", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Calendar_Booking_BookingID",
+                        column: x => x.BookingID,
+                        principalTable: "Booking",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Calendar_HomeStay_HomeStayID",
                         column: x => x.HomeStayID,
                         principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -299,14 +269,35 @@ namespace DataAccess.Migrations
                         name: "FK_FeedBack_HomeStay_HomeStayID",
                         column: x => x.HomeStayID,
                         principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_FeedBack_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HomestayAmenity",
+                columns: table => new
+                {
+                    AmenityId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HomestayAmenity", x => new { x.HomeStayID, x.AmenityId });
+                    table.ForeignKey(
+                        name: "FK_HomestayAmenity_Amenity_AmenityId",
+                        column: x => x.AmenityId,
+                        principalTable: "Amenity",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_HomestayAmenity_HomeStay_HomeStayID",
+                        column: x => x.HomeStayID,
+                        principalTable: "HomeStay",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -325,8 +316,7 @@ namespace DataAccess.Migrations
                         name: "FK_HomeStayImage_HomeStay_HomeStayID",
                         column: x => x.HomeStayID,
                         principalTable: "HomeStay",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -345,22 +335,20 @@ namespace DataAccess.Migrations
                 {
                     table.PrimaryKey("PK_CommentPost", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_CommentPost_CommentPost_ParrentID",
+                        column: x => x.ParrentID,
+                        principalTable: "CommentPost",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_CommentPost_Post_PostID",
                         column: x => x.PostID,
                         principalTable: "Post",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_CommentPost_Users_ParrentID",
-                        column: x => x.ParrentID,
-                        principalTable: "Users",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_CommentPost_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -379,8 +367,7 @@ namespace DataAccess.Migrations
                         name: "FK_PostImage_Post_PostID",
                         column: x => x.PostID,
                         principalTable: "Post",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.InsertData(
@@ -398,15 +385,10 @@ namespace DataAccess.Migrations
                 columns: new[] { "Id", "Address", "Avatar", "BirhDay", "CitizenID", "CreatedAt", "Email", "FullName", "Gender", "IsDeleted", "IsEmailConfirmed", "LastModifiedAt", "PasswordHash", "Phone", "RoleId" },
                 values: new object[,]
                 {
-                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Bình Thủy, Cần Thơ", null, null, null, new DateTime(2025, 2, 13, 11, 16, 59, 542, DateTimeKind.Utc).AddTicks(3737), "staff@gmail.com", "staff", null, false, true, new DateTime(2025, 2, 13, 11, 16, 59, 542, DateTimeKind.Utc).AddTicks(3748), "$2a$11$OK2EPWuv6J.UeQo5uFYSRO0qrdWwefwPXOT2/9IiD8GdZeHI8.8b2", "0987654123", 2 },
-                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Phong Điền, Cần Thơ", null, null, null, new DateTime(2025, 2, 13, 11, 16, 59, 662, DateTimeKind.Utc).AddTicks(4314), "user@gmail.com", "user", null, false, true, new DateTime(2025, 2, 13, 11, 16, 59, 662, DateTimeKind.Utc).AddTicks(4327), "$2a$11$39KxkazlCiG6kyr0kBZojOIUopu9oUQxlJPUSfYc2FUl6TITkcp8.", "0987654312", 3 },
-                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Ninh Kiều, Cần Thơ", null, null, null, new DateTime(2025, 2, 13, 11, 16, 59, 422, DateTimeKind.Utc).AddTicks(2725), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 2, 13, 11, 16, 59, 422, DateTimeKind.Utc).AddTicks(2735), "$2a$11$R2h7FW2zI7ufn6nx5qKTMOJkHS5dWdINrr073RrKfJL3yxlXpL6g.", "0987654321", 1 }
+                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Bình Thủy, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 17, 7, 53, 554, DateTimeKind.Utc).AddTicks(3442), "staff@gmail.com", "staff", null, false, true, new DateTime(2025, 2, 15, 17, 7, 53, 554, DateTimeKind.Utc).AddTicks(3450), "$2a$11$8cUpyPjhzxrfkPNLQIFe4.uFZA1.vsegWkua5CYfW6irK/GpARuyu", "0987654123", 2 },
+                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Phong Điền, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 17, 7, 53, 668, DateTimeKind.Utc).AddTicks(578), "user@gmail.com", "user", null, false, true, new DateTime(2025, 2, 15, 17, 7, 53, 668, DateTimeKind.Utc).AddTicks(591), "$2a$11$eU.7XA5mZSxX3iNqrDvGbuAiLFKsMx92jxl5sCCGe9pkWC0.4yJpW", "0987654312", 3 },
+                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Ninh Kiều, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 17, 7, 53, 441, DateTimeKind.Utc).AddTicks(5528), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 2, 15, 17, 7, 53, 441, DateTimeKind.Utc).AddTicks(5533), "$2a$11$Nh2B45YbMpfBZvNGwLKqm.WMOa.FDQp35GMiMY3FF3W/WEU1bjHla", "0987654321", 1 }
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Booking_HomeStayID",
-                table: "Booking",
-                column: "HomeStayID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Booking_UserID",
@@ -414,9 +396,9 @@ namespace DataAccess.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Booking_VoucherID",
-                table: "Booking",
-                column: "VoucherID");
+                name: "IX_Calendar_BookingID",
+                table: "Calendar",
+                column: "BookingID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Calendar_HomeStayID",
@@ -459,6 +441,11 @@ namespace DataAccess.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HomestayAmenity_AmenityId",
+                table: "HomestayAmenity",
+                column: "AmenityId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HomeStayImage_HomeStayID",
                 table: "HomeStayImage",
                 column: "HomeStayID");
@@ -493,12 +480,6 @@ namespace DataAccess.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Amenity");
-
-            migrationBuilder.DropTable(
-                name: "Booking");
-
-            migrationBuilder.DropTable(
                 name: "Calendar");
 
             migrationBuilder.DropTable(
@@ -524,6 +505,12 @@ namespace DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserVoucher");
+
+            migrationBuilder.DropTable(
+                name: "Booking");
+
+            migrationBuilder.DropTable(
+                name: "Amenity");
 
             migrationBuilder.DropTable(
                 name: "HomeStay");

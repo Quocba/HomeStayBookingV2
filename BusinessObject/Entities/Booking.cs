@@ -25,14 +25,10 @@ namespace BusinessObject.Entities
 
         public String? ReasonCancel {  get; set; }
         public bool isDeleted { get; set; } = false;
+        public Guid UserID { get; set; }
 
         [ForeignKey("UserID")]
         public User User { get; set; }
-
-        [ForeignKey("VoucherID")]
-        public Voucher Voucher { get; set; }
-       
-        [ForeignKey("HomeStayID")]
-        public HomeStay HomeStay { get; set; }
+        public ICollection<Calendar> Calendars { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace API.Middlewares
                     Success = isSuccess,
                     StatusCode = statusCode,
                     Message = MessageByStatusCode.GetMessageByStatusCode(statusCode),
-                    Data = isSuccess ? JsonSerializer.Deserialize<object>(bodyContent) : null
+                    Data = JsonSerializer.Deserialize<object>(bodyContent)
                 };
 
                 var response = JsonSerializer.Serialize(apiResponse);

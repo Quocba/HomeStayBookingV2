@@ -14,6 +14,7 @@ namespace BusinessObject.Entities
     {
         public string Name {  get; set; }
         public bool isDeleted { get; set; } = false;
+        public ICollection<HomestayAmenity> HomeStayAmenities { get; set; }
 
     }
 }

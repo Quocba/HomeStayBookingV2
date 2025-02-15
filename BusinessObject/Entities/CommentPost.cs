@@ -18,17 +18,19 @@ namespace BusinessObject.Entities
         public string Comment {  get; set; }
 
         public DateTime CommontDate { get; set; } = DateUtility.GetCurrentDateTime();
-
+        public Guid PostID { get; set; }
         [ForeignKey("PostID")]
         public Post Post { get; set; }
+        public Guid UserID { get; set; }
 
         [ForeignKey("UserID")]
         public User User { get; set; }
+        public Guid? ParrentID { get; set; }
 
         [ForeignKey("ParrentID")]
-        public User? ReplyToUser { get; set; }
+        public CommentPost? ReplyToUser { get; set; }
         public bool isDeleted { get; set; } = false;
 
-
+        public ICollection<CommentPost>? ChildComments { get; set; }
     }
 }

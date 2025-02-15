@@ -45,7 +45,14 @@ namespace DataAccess.Context
 
             builder.Entity<Calendar>()
                 .Property(c => c.Price)
-            .HasPrecision(18, 4);
+            .HasPrecision(18, 4); 
+            
+            foreach (var relationship in builder.Model.GetEntityTypes()
+            .SelectMany(e => e.GetForeignKeys()))
+                    {
+                        relationship.DeleteBehavior = DeleteBehavior.NoAction;
+                    }
+
 
             base.OnModelCreating(builder);
             builder.Entity<Role>()

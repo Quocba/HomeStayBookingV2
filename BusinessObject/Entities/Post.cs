@@ -30,8 +30,9 @@ namespace BusinessObject.Entities
 
         public DateTime PublishDate { get; set; } = DateUtility.GetCurrentDateTime();
         public bool isDeleted { get; set; } = false;
-
+        public Guid UserID { get; set; }
         [ForeignKey("UserID")]
         public User User { get; set; }
+        public ICollection<PostImage> PostImages { get; set; }
     }
 }

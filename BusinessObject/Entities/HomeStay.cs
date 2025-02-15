@@ -28,7 +28,7 @@ namespace BusinessObject.Entities
         public bool isDeleted {  get; set; }
 
         [MaxLength(255)]
-        public string Address {  get; set; }
+        public string? Address {  get; set; }
 
         [MaxLength(255)]
         public string City { get; set; }
@@ -40,12 +40,13 @@ namespace BusinessObject.Entities
 
         [MaxLength(255)]
         public string CheckOutTime { get; set; }
+        public Guid UserID { get; set; }
 
         [ForeignKey("UserID")]
         public User User { get; set; }
 
-        public ICollection<HomestayAmenity>? HomestayAmenities { get; set; }
-        public ICollection<HomeStayImage>? HomestayImages { get; set; }
-        public ICollection<Calendar>? Calendars { get; set; }
+        public ICollection<HomestayAmenity> HomestayAmenities { get; set; }
+        public ICollection<HomeStayImage> HomestayImages { get; set; }
+        public ICollection<Calendar> Calendars { get; set; }
     }
 }

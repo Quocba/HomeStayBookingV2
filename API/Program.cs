@@ -154,6 +154,6 @@ app.UseCors(MyAllowSpecificOrigins);
 
 //app.UseMiddleware<ApiKeyMiddleware>();
 app.UseMiddleware<ApiUserIdMiddleware>();
-//app.UseMiddleware<ApiResponseMiddleware>();
+app.UseMiddleware<ApiResponseMiddleware>();
 
 app.Run();

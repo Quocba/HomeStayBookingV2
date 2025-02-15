@@ -40,13 +40,13 @@ namespace API.Controllers
                     User = user
                 };
                 await _homeStayRepository.AddAsync(createHomeStay);
-                var calendarTask = _calendarRepository.AddAsync(new Calendar
-                {
-                    Date = request.Date,
-                    Price = request.Price,
-                    isDeleted = request.IsDeleted,
-                    HomeStay = createHomeStay
-                });
+                //var calendarTask = _calendarRepository.AddAsync(new Calendar
+                //{
+                //    Date = request.Date,
+                //    Price = request.Price,
+                //    isDeleted = request.IsDeleted,
+                //    HomeStay = createHomeStay
+                //});
 
             foreach (var image in request.Images)
                 {

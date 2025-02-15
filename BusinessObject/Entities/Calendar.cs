@@ -13,9 +13,14 @@ namespace BusinessObject.Entities
     {
         public DateTime Date { get; set; }
         public Decimal Price {  get; set; }
+        public Guid HomeStayID { get; set; }
 
         [ForeignKey("HomeStayID")]
         public HomeStay HomeStay { get; set; }
+        public Guid? BookingID { get; set; }
+
+        [ForeignKey("BookingID")]
+        public Booking? Booking { get; set; }
 
         public bool isDeleted {  get; set; } = false;
     }

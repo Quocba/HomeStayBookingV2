@@ -11,7 +11,9 @@ namespace BusinessObject.Entities
     public class HomestayAmenity
     {
         public Guid AmenityId { get; set; }
+        [ForeignKey("AmenityId")]
         public Amenity Amenity { get; set; }
+        [ForeignKey("HomeStayID")]
         public Guid HomeStayID {  get; set; }
         public HomeStay HomeStay { get; set; }
         public bool isDeleted { get; set; } = false;

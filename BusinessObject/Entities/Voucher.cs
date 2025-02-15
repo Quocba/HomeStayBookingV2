@@ -31,5 +31,6 @@ namespace BusinessObject.Entities
         public DateTime EndDate { get; set; }
 
         public bool isDeleted {  get; set; } = false;
+        public ICollection<UserVoucher> UserVouchers { get; set; }
     }
 }
