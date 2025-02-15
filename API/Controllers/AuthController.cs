@@ -1,4 +1,5 @@
-﻿using BusinessObject.DTO;
+﻿using API.Services;
+using BusinessObject.DTO;
 using BusinessObject.Entities;
 using BusinessObject.Exceptions;
 using BusinessObject.Interfaces;
@@ -6,6 +7,7 @@ using BusinessObject.Shares;
 using DataAccess.Handlers;
 using DataAccess.Repositories;
 using DataAccess.Services;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -19,7 +21,8 @@ namespace API.Controllers
     public class AuthController(IUserRepository _userRepository, ITokenService _tokenService
         , IPasswordHasher _passwordHasher
         , IEmailSender _emailSender
-        , IConfiguration _configuration) : ControllerBase
+        , IConfiguration _configuration,
+        IGoogleLoginService _googleLoginService) : ControllerBase
     {
 
         [HttpGet("get-me")]
@@ -199,5 +202,63 @@ namespace API.Controllers
             await _userRepository.SaveAsync();
             return Ok(new { message = "UnBlock successful" });
         }
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try
+            {
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new List<string> { _configuration["GoogleAuth:ClientId"] }
+                });
+
+                var user = await _googleLoginService.GetUserByEmailAsync(payload.Email);
+                if (user == null)
+                {
+                    user = new User
+                    {
+                        Id = Guid.NewGuid(), 
+                        FullName = payload.Name,
+                        Email = payload.Email,
+                        Avatar = payload.Picture,
+                        IsEmailConfirmed = true, 
+                        RoleId = 1, 
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await _googleLoginService.CreateUserAsync(user);
+                }
+                var accessToken = _tokenService.GenerateJwtToken(user);
+                var refreshToken = _tokenService.GenerateRefreshToken(64);
+
+                await _userRepository.SaveRefreshToken(user.Id, refreshToken, DateUtility.GetCurrentDateTime().AddDays(1));
+                await _userRepository.SaveAsync();
+
+                var response = new LoginResponse
+                {
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken
+                };
+
+                if (response == null) return Unauthorized();
+                return Ok(response);
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Invalid Google token", Error = ex.Message });
+            }
+        }
+
+
+        public class GoogleLoginRequest
+        {
+            public string IdToken { get; set; }
+        }
     }
 }
+
