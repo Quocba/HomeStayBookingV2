@@ -507,13 +507,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("d87b4b72-609b-4979-b758-7771481da883"),
                             Address = "Ninh Kiều, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 15, 17, 7, 53, 441, DateTimeKind.Utc).AddTicks(5528),
+                            CreatedAt = new DateTime(2025, 2, 15, 20, 45, 1, 650, DateTimeKind.Utc).AddTicks(2863),
                             Email = "admin@gmail.com",
                             FullName = "admin",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 15, 17, 7, 53, 441, DateTimeKind.Utc).AddTicks(5533),
-                            PasswordHash = "$2a$11$Nh2B45YbMpfBZvNGwLKqm.WMOa.FDQp35GMiMY3FF3W/WEU1bjHla",
+                            LastModifiedAt = new DateTime(2025, 2, 15, 20, 45, 1, 650, DateTimeKind.Utc).AddTicks(2870),
+                            PasswordHash = "$2a$11$qxj50p.JIWTQ5A59radti.CW2b6dH42hCod8fewf2WJ.th.LExcTO",
                             Phone = "0987654321",
                             RoleId = 1
                         },
@@ -521,13 +521,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"),
                             Address = "Bình Thủy, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 15, 17, 7, 53, 554, DateTimeKind.Utc).AddTicks(3442),
+                            CreatedAt = new DateTime(2025, 2, 15, 20, 45, 1, 768, DateTimeKind.Utc).AddTicks(2280),
                             Email = "staff@gmail.com",
                             FullName = "staff",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 15, 17, 7, 53, 554, DateTimeKind.Utc).AddTicks(3450),
-                            PasswordHash = "$2a$11$8cUpyPjhzxrfkPNLQIFe4.uFZA1.vsegWkua5CYfW6irK/GpARuyu",
+                            LastModifiedAt = new DateTime(2025, 2, 15, 20, 45, 1, 768, DateTimeKind.Utc).AddTicks(2292),
+                            PasswordHash = "$2a$11$x5/9o50xsIzCe9u3x.S5/uPwTgTCmTc8ZlnvsvtbbY/V9IQgmKlT6",
                             Phone = "0987654123",
                             RoleId = 2
                         },
@@ -535,13 +535,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"),
                             Address = "Phong Điền, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 15, 17, 7, 53, 668, DateTimeKind.Utc).AddTicks(578),
+                            CreatedAt = new DateTime(2025, 2, 15, 20, 45, 1, 887, DateTimeKind.Utc).AddTicks(7596),
                             Email = "user@gmail.com",
                             FullName = "user",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 15, 17, 7, 53, 668, DateTimeKind.Utc).AddTicks(591),
-                            PasswordHash = "$2a$11$eU.7XA5mZSxX3iNqrDvGbuAiLFKsMx92jxl5sCCGe9pkWC0.4yJpW",
+                            LastModifiedAt = new DateTime(2025, 2, 15, 20, 45, 1, 887, DateTimeKind.Utc).AddTicks(7609),
+                            PasswordHash = "$2a$11$/HkbbOhjB3m0z3mymHs1T.yJ2wf5h2nAZnQVoC268lW4ITT.se0Gm",
                             Phone = "0987654312",
                             RoleId = 3
                         });

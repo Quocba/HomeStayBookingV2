@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class dbinit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -385,9 +385,9 @@ namespace DataAccess.Migrations
                 columns: new[] { "Id", "Address", "Avatar", "BirhDay", "CitizenID", "CreatedAt", "Email", "FullName", "Gender", "IsDeleted", "IsEmailConfirmed", "LastModifiedAt", "PasswordHash", "Phone", "RoleId" },
                 values: new object[,]
                 {
-                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Bình Thủy, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 17, 7, 53, 554, DateTimeKind.Utc).AddTicks(3442), "staff@gmail.com", "staff", null, false, true, new DateTime(2025, 2, 15, 17, 7, 53, 554, DateTimeKind.Utc).AddTicks(3450), "$2a$11$8cUpyPjhzxrfkPNLQIFe4.uFZA1.vsegWkua5CYfW6irK/GpARuyu", "0987654123", 2 },
-                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Phong Điền, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 17, 7, 53, 668, DateTimeKind.Utc).AddTicks(578), "user@gmail.com", "user", null, false, true, new DateTime(2025, 2, 15, 17, 7, 53, 668, DateTimeKind.Utc).AddTicks(591), "$2a$11$eU.7XA5mZSxX3iNqrDvGbuAiLFKsMx92jxl5sCCGe9pkWC0.4yJpW", "0987654312", 3 },
-                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Ninh Kiều, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 17, 7, 53, 441, DateTimeKind.Utc).AddTicks(5528), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 2, 15, 17, 7, 53, 441, DateTimeKind.Utc).AddTicks(5533), "$2a$11$Nh2B45YbMpfBZvNGwLKqm.WMOa.FDQp35GMiMY3FF3W/WEU1bjHla", "0987654321", 1 }
+                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Bình Thủy, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 20, 45, 1, 768, DateTimeKind.Utc).AddTicks(2280), "staff@gmail.com", "staff", null, false, true, new DateTime(2025, 2, 15, 20, 45, 1, 768, DateTimeKind.Utc).AddTicks(2292), "$2a$11$x5/9o50xsIzCe9u3x.S5/uPwTgTCmTc8ZlnvsvtbbY/V9IQgmKlT6", "0987654123", 2 },
+                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Phong Điền, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 20, 45, 1, 887, DateTimeKind.Utc).AddTicks(7596), "user@gmail.com", "user", null, false, true, new DateTime(2025, 2, 15, 20, 45, 1, 887, DateTimeKind.Utc).AddTicks(7609), "$2a$11$/HkbbOhjB3m0z3mymHs1T.yJ2wf5h2nAZnQVoC268lW4ITT.se0Gm", "0987654312", 3 },
+                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Ninh Kiều, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 20, 45, 1, 650, DateTimeKind.Utc).AddTicks(2863), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 2, 15, 20, 45, 1, 650, DateTimeKind.Utc).AddTicks(2870), "$2a$11$qxj50p.JIWTQ5A59radti.CW2b6dH42hCod8fewf2WJ.th.LExcTO", "0987654321", 1 }
                 });
 
             migrationBuilder.CreateIndex(

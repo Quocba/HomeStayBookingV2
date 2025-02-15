@@ -21,7 +21,6 @@ namespace API.Controllers
         [HttpPost("add-home-stay")]
         public async Task<IActionResult> AddHomeStay([FromHeader(Name = "X-User-Id")] Guid userID,[FromBody]AddHomeStayRequest request)
         {
-                var user = await _userRepository.GetByIdAsync(userID);
                 Guid homeStayID = Guid.NewGuid();
                 HomeStay createHomeStay = new HomeStay
                 {
@@ -37,16 +36,9 @@ namespace API.Controllers
                     City = request.City,
                     OpenIn = request.OpenIn,
                     Standar = request.Standar,
-                    User = user
+                    UserID = userID
                 };
                 await _homeStayRepository.AddAsync(createHomeStay);
-                //var calendarTask = _calendarRepository.AddAsync(new Calendar
-                //{
-                //    Date = request.Date,
-                //    Price = request.Price,
-                //    isDeleted = request.IsDeleted,
-                //    HomeStay = createHomeStay
-                //});
 
             foreach (var image in request.Images)
                 {
