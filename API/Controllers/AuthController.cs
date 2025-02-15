@@ -253,12 +253,6 @@ namespace API.Controllers
                 return BadRequest(new { Message = "Invalid Google token", Error = ex.Message });
             }
         }
-
-
-        public class GoogleLoginRequest
-        {
-            public string IdToken { get; set; }
-        }
     }
 }
 
