@@ -107,5 +107,69 @@ namespace API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpGet("list")]
+        public async Task<IActionResult> GetVouchers([FromQuery] bool onlyValid = false)
+        {
+            var vouchersQuery = _voucherRepository.Find(v => !v.isDeleted);
+
+            if (onlyValid)
+            {
+                vouchersQuery = vouchersQuery.Where(v => v.EndDate >= DateTime.UtcNow);
+            }
+
+            var vouchers = await vouchersQuery
+                .Select(v => new
+                {
+                    VoucherID = v.Id,
+                    Code = v.Code,
+                    Description = v.Description,
+                    Discount = v.Discount,
+                    StartDate = v.StartDate,
+                    EndDate = v.EndDate,
+                    Image = v.Image
+                })
+                .ToListAsync();
+
+            if (!vouchers.Any())
+            {
+                return NotFound(new { Message = "No vouchers found" });
+            }
+
+            return Ok(vouchers);
+        }
+
+
+        [HttpGet("user-vouchers")]
+        public async Task<IActionResult> GetUserVouchers([FromHeader(Name = "X-User-Id")] Guid userId)
+        {
+            var user = await _userRepository.Find(u => u.Id == userId).FirstOrDefaultAsync();
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            var userVouchers = await _userVoucherRepository
+                .Find(uv => uv.UserID == userId && !uv.isUsed && uv.voucher.EndDate >= DateTime.UtcNow && !uv.voucher.isDeleted)
+                .Include(uv => uv.voucher)
+                .Select(uv => new
+                {
+                    VoucherID = uv.VoucherID,
+                    Code = uv.voucher.Code,
+                    Description = uv.voucher.Description,
+                    Discount = uv.voucher.Discount,
+                    StartDate = uv.voucher.StartDate,
+                    EndDate = uv.voucher.EndDate,
+                    Image = uv.voucher.Image
+                })
+                .ToListAsync();
+
+            if (!userVouchers.Any())
+            {
+                return NotFound(new { Message = "No valid vouchers found for this user" });
+            }
+
+            return Ok(userVouchers);
+        }
+
     }
 }
