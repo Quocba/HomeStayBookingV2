@@ -8,11 +8,13 @@ namespace BusinessObject.DTO
 {
     public class BookingDTO
     {
-        public DateTime CheckInDate { get; set; }
-        public DateTime CheckOutDate { get; set; }
-        public decimal TotalPrice { get; set; }
-        public decimal UnitPrice { get; set; }
-        public Guid HomeStayID { get; set; }
+        public List<BookingCalendarDTO> Calenders { get; set; }
         public string? VoucherCode { get; set; }
+        public bool IsOnline { get; set; } // true: Online | false: Offline
+    }
+
+    public class BookingCalendarDTO
+    {
+        public Guid CalenderID { get; set; }
     }
 }

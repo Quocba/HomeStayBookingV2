@@ -27,6 +27,7 @@ namespace DataAccess.Context
         public DbSet<Calendar> Calendars {  get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Amenity> Amennities {  get; set; } 
+        public DbSet<Transaction> Transactions { get; set; }
         
         protected override void OnModelCreating(ModelBuilder builder)
         {
