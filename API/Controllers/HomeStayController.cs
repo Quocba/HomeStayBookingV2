@@ -232,6 +232,9 @@ namespace API.Controllers
                 .Include(h => h.HomeStay!)
                 .ThenInclude(hs => hs.HomestayAmenities!)
                 .ThenInclude(ha => ha.Amenity)
+                .Include(h => h.HomeStay!)
+                .ThenInclude(hs => hs.FeedBacks!)
+                .ThenInclude(hs => hs.User!)
                 .Include(h => h.HomeStay.HomestayImages!)
                 .FirstOrDefaultAsync(h => h.HomeStay.Id == homeStayID);
 
@@ -271,7 +274,14 @@ namespace API.Controllers
                 {
                     ha.Amenity.Id,
                     ha.Amenity.Name
-                }).ToList()
+                }).ToList(),
+                FeedBack = getDetail.HomeStay.FeedBacks!.Where(f => !f.isDeleted).Select(f => new
+                {
+                    f.Id,
+                    Fullname = f.User.FullName,
+                    f.Description,
+                    f.Rating
+                })
             };
 
             return Ok(response);

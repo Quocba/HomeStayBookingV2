@@ -31,7 +31,7 @@ namespace API.Controllers
         {
             var calendars = await _calendarRepository.GetAllAsync();
 
-            calendars = calendars.Where(c => c.HomeStay.Id == homeStayId && !c.isDeleted);
+            calendars = calendars.Where(c => c.HomeStayID == homeStayId && !c.isDeleted);
 
             if (!calendars.Any())
                 return NotFound(new { Message = "No calendars found for this HomeStay" });
@@ -40,14 +40,18 @@ namespace API.Controllers
 
             return Ok(sortedCalendars);
         }
-
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] List<CalendarDTO> calendarDTOs)
         {
             if (calendarDTOs == null || !calendarDTOs.Any())
                 return BadRequest(new { Message = "Invalid data" });
 
-            var calendars = new List<Calendar>();
+            var homeStayIds = calendarDTOs.Select(dto => dto.HomeStayID).Distinct().ToList();
+
+            var existingCalendars = await _calendarRepository
+                .FindAsync(c => homeStayIds.Contains(c.HomeStay.Id));
+
+            var calendarsToAdd = new List<Calendar>();
 
             foreach (var dto in calendarDTOs)
             {
@@ -55,22 +59,35 @@ namespace API.Controllers
                 if (homeStay == null)
                     return BadRequest(new { Message = $"HomeStay {dto.HomeStayID} not found" });
 
-                calendars.Add(new Calendar
+                var existingCalendar = existingCalendars
+                    .FirstOrDefault(c => c.HomeStay.Id == dto.HomeStayID && c.Date.Date == dto.Date.Date);
+
+                if (existingCalendar != null)
                 {
-                    Id = Guid.NewGuid(),
-                    Date = dto.Date,
-                    Price = dto.Price,
-                    HomeStay = homeStay,
-                    Booking = null,
-                    isDeleted = false
-                });
+                    existingCalendar.Price = dto.Price;
+                }
+                else
+                {
+                    calendarsToAdd.Add(new Calendar
+                    {
+                        Id = Guid.NewGuid(),
+                        Date = dto.Date,
+                        Price = dto.Price,
+                        HomeStay = homeStay,
+                        Booking = null,
+                        isDeleted = false
+                    });
+                }
             }
 
-            await _calendarRepository.AddRangeAsync(calendars);
+            if (calendarsToAdd.Any())
+                await _calendarRepository.AddRangeAsync(calendarsToAdd);
+
             await _calendarRepository.SaveAsync();
 
-            return Ok(new { Message = "Calendars created successfully!" });
+            return Ok(new { Message = "Calendars processed successfully!" });
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] CalendarDTO dto)
