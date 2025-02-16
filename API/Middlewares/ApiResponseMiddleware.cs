@@ -17,6 +17,13 @@ namespace API.Middlewares
             {
                 await _next(context);
 
+                if (context.Response.StatusCode >= 300 && context.Response.StatusCode < 400)
+                {
+                    responseBody.Seek(0, SeekOrigin.Begin);
+                    await responseBody.CopyToAsync(originalBodyStream);
+                    return;
+                }
+
                 if (context.Response.ContentType?.StartsWith("application/vnd.openxmlformats-officedocument") == true)
                 {
                     responseBody.Seek(0, SeekOrigin.Begin);

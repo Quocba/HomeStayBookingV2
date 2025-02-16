@@ -16,7 +16,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BookingController(IRepository<Booking> _bookingRepository,
+    public class BookingController(IBookingRepository _bookingRepository,
                                    IRepository<Voucher> _voucherRepository,
                                    IUserRepository _userRepository,
                                    IRepository<HomeStay> _homeStayRepository,
@@ -32,11 +32,7 @@ namespace API.Controllers
             if (user == null)
                 return NotFound(new { Message = "User not found" });
 
-            var bookings = await _bookingRepository.FindWithInclude(b => b.Calendars)
-                .Include(b => b.Calendars)
-                .ThenInclude(c => c.HomeStay)
-                .Where(b => b.UserID == userId)
-                .ToListAsync();
+            var bookings = await _bookingRepository.GetHistory(userId);
 
             if (!bookings.Any())
                 return Ok(new { Message = "No booking history found." });
@@ -47,8 +43,7 @@ namespace API.Controllers
                 CheckInDate = b.CheckInDate.ToString("dd/MM/yyyy HH:mm"),
                 CheckOutDate = b.CheckOutDate.ToString("dd/MM/yyyy HH:mm"),
                 TotalPrice = b.TotalPrice.ToString("C", new System.Globalization.CultureInfo("vi-VN")),
-                Status = b.Status,
-                HomeStay = b.Calendars.FirstOrDefault()?.HomeStay?.Name ?? "N/A"
+                Status = b.Status
             }).OrderByDescending(b => b.CheckInDate).ToList();
 
             return Ok(bookingHistory);
