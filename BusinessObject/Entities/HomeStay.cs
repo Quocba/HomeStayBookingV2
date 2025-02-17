@@ -48,5 +48,6 @@ namespace BusinessObject.Entities
         public ICollection<HomestayAmenity> HomestayAmenities { get; set; }
         public ICollection<HomeStayImage> HomestayImages { get; set; }
         public ICollection<Calendar> Calendars { get; set; }
+        public ICollection<HomeStayFacility> HomestayFacilities { get; set; }
     }
 }

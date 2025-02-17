@@ -4,6 +4,7 @@ using DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250217084751_addTable")]
+    partial class addTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -300,9 +303,6 @@ namespace DataAccess.Migrations
                     b.Property<Guid>("FacilityID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.HasKey("HomeStayID", "FacilityID");
 
                     b.HasIndex("FacilityID");
@@ -552,13 +552,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("d87b4b72-609b-4979-b758-7771481da883"),
                             Address = "Ninh Kiều, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 17, 15, 54, 20, 323, DateTimeKind.Utc).AddTicks(7613),
+                            CreatedAt = new DateTime(2025, 2, 17, 15, 47, 51, 164, DateTimeKind.Utc).AddTicks(4799),
                             Email = "admin@gmail.com",
                             FullName = "admin",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 17, 15, 54, 20, 323, DateTimeKind.Utc).AddTicks(7621),
-                            PasswordHash = "$2a$11$XN31FF0PxZRZc.TgbZ72qOmgYWCE.hyX/YETFrJaxS8sQ3R/FPHGe",
+                            LastModifiedAt = new DateTime(2025, 2, 17, 15, 47, 51, 164, DateTimeKind.Utc).AddTicks(4806),
+                            PasswordHash = "$2a$11$xU54yHoRsEV3uOngdyNrK.JxafbvJCbOKDJSldeyZhzMmhoSMvnZe",
                             Phone = "0987654321",
                             RoleId = 1
                         },
@@ -566,13 +566,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"),
                             Address = "Bình Thủy, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 17, 15, 54, 20, 439, DateTimeKind.Utc).AddTicks(8365),
+                            CreatedAt = new DateTime(2025, 2, 17, 15, 47, 51, 277, DateTimeKind.Utc).AddTicks(7839),
                             Email = "staff@gmail.com",
                             FullName = "staff",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 17, 15, 54, 20, 439, DateTimeKind.Utc).AddTicks(8375),
-                            PasswordHash = "$2a$11$zWvQWgoc5nd59bdetNY8Iuo6NUQudCyZ/.5iiOGijgIdLkLPulsju",
+                            LastModifiedAt = new DateTime(2025, 2, 17, 15, 47, 51, 277, DateTimeKind.Utc).AddTicks(7853),
+                            PasswordHash = "$2a$11$HtxffAbvGy228evKWGkWaeB34W4Qqy78DOwvOKDviQAf0X.YIi35W",
                             Phone = "0987654123",
                             RoleId = 2
                         },
@@ -580,13 +580,13 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"),
                             Address = "Phong Điền, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 17, 15, 54, 20, 554, DateTimeKind.Utc).AddTicks(7826),
+                            CreatedAt = new DateTime(2025, 2, 17, 15, 47, 51, 396, DateTimeKind.Utc).AddTicks(6888),
                             Email = "user@gmail.com",
                             FullName = "user",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 17, 15, 54, 20, 554, DateTimeKind.Utc).AddTicks(7836),
-                            PasswordHash = "$2a$11$BtxCSiriaSg1nj7KjTxdcuWFaFJU7HV1l13vlSvmqBf4p4D6CSkj6",
+                            LastModifiedAt = new DateTime(2025, 2, 17, 15, 47, 51, 396, DateTimeKind.Utc).AddTicks(6899),
+                            PasswordHash = "$2a$11$s4kKFd77X7Mu8W24n50QheiSjwH9hDa4Ei9VC1z9KIzPKS5mpzYkq",
                             Phone = "0987654312",
                             RoleId = 3
                         });
@@ -749,7 +749,7 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("BusinessObject.Entities.HomeStayFacility", b =>
                 {
-                    b.HasOne("BusinessObject.Entities.Facility", "Facility")
+                    b.HasOne("BusinessObject.Entities.HomeStay", "Facility")
                         .WithMany()
                         .HasForeignKey("FacilityID")
                         .OnDelete(DeleteBehavior.NoAction)

@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(opt =>
 });
 
 builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddHttpClient();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
@@ -154,6 +154,6 @@ app.UseCors(MyAllowSpecificOrigins);
 
 //app.UseMiddleware<ApiKeyMiddleware>();
 app.UseMiddleware<ApiUserIdMiddleware>();
-app.UseMiddleware<ApiResponseMiddleware>();
+//app.UseMiddleware<ApiResponseMiddleware>();
 
 app.Run();
