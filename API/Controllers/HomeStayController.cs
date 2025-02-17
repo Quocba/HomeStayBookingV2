@@ -15,9 +15,69 @@ namespace API.Controllers
         IRepository<Calendar> _calendarRepository,
         IWebHostEnvironment _eviroment,
         IRepository<Amenity> _amenityRepository,
-        IRepository<HomestayAmenity> _homeStayAmenity
+        IRepository<HomestayAmenity> _homeStayAmenity,
+        HttpClient _httpClient,
+        IRepository<HomeStayFacility> _homestayFacility,
+        IRepository<Facility> _facilityRepository
             ) : ControllerBase
     {
+
+        [HttpPost("add-home-stay-facility")]
+        public async Task<IActionResult> AddHomeStayFacility(AddHomeStayFacilityDTO request)
+        {
+            try
+            {
+                HomeStayFacility addFacility = new HomeStayFacility
+                {
+                    FacilityID = request.FacilityID,
+                    HomeStayID = request.HomeStayID,
+                };
+                await _homestayFacility.AddAsync(addFacility);
+                await _homestayFacility.SaveAsync();
+                return Ok(new {Message = "Add Facility Success"});
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex);
+            }
+        }
+
+        [HttpDelete("delete-home-stay-facility")]
+        public async Task<IActionResult> DeleteHomeStayFacility([FromQuery] Guid HomeStayID, Guid FacilityID)
+        {
+            var checkDelete = await _homestayFacility.Find(h => h.HomeStayID == HomeStayID && h.FacilityID == FacilityID)
+                                                    .FirstOrDefaultAsync();
+            if (checkDelete != null)
+            {
+                await _homestayFacility.DeleteAsync(checkDelete);
+                await _homestayFacility.SaveAsync();
+                return Ok(new { Message = "Delete Amenity Success" });
+            }
+            return NotFound();
+        }
+
+        [HttpGet("search-autocomplete-agoda")]
+        public async Task<IActionResult> GetBookingHotel([FromQuery]String city)
+        {
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"https://agoda-com.p.rapidapi.com/hotels/auto-complete?query={city}"),
+                Headers =
+            {
+                { "x-rapidapi-key", "52bcd7f98bmsh281c68c3f9d7c44p169949jsn21d2e2049b30" },
+                { "x-rapidapi-host", "agoda-com.p.rapidapi.com" },
+            },
+            };
+
+            using (var response = await _httpClient.SendAsync(request))
+            {
+                response.EnsureSuccessStatusCode();
+                var body = await response.Content.ReadAsStringAsync();
+                return Ok(body);
+            }
+
+        }
+
         [HttpPost("add-home-stay")]
         public async Task<IActionResult> AddHomeStay([FromHeader(Name = "X-User-Id")] Guid userID,[FromBody]AddHomeStayRequest request)
         {
@@ -162,6 +222,8 @@ namespace API.Controllers
                 .FindWithInclude(h => h.Calendars!)
                 .Include(h => h.HomestayAmenities!)
                 .ThenInclude(ha => ha.Amenity)
+                .Include(hf =>  hf.HomestayFacilities)
+                .ThenInclude(fa => fa.Facility)
                 .AsQueryable();
 
             if (request.Standard is { Count: > 0 })
@@ -218,7 +280,13 @@ namespace API.Controllers
                     {
                         ha.Amenity.Id,
                         ha.Amenity.Name
-                    }).ToList()
+                    }).ToList(),
+                Facility = h.HomestayFacilities!.Select(hf => new
+                {
+                        hf.FacilityID,
+                        hf.Facility.Name,
+                        hf.Facility.Description
+                }).ToList()
             }).ToList();
 
             return Ok(response);
@@ -227,16 +295,15 @@ namespace API.Controllers
         [HttpGet("get-home-stay-detail")]
         public async Task<IActionResult> GetHomeStayDetail([FromQuery] Guid homeStayID)
         {
-            var getDetail = await _calendarRepository
-                .FindWithInclude(h => h.HomeStay)
-                .Include(h => h.HomeStay!)
-                .ThenInclude(hs => hs.HomestayAmenities!)
+            var getDetail = await _homeStayRepository
+                .FindWithInclude(h => h.Calendars!)
+                .Include(h => h.HomestayAmenities!)
                 .ThenInclude(ha => ha.Amenity)
-                .Include(h => h.HomeStay!)
-                .ThenInclude(hs => hs.FeedBacks!)
-                .ThenInclude(hs => hs.User!)
-                .Include(h => h.HomeStay.HomestayImages!)
-                .FirstOrDefaultAsync(h => h.HomeStay.Id == homeStayID);
+                .Include(img => img.HomestayImages!)
+                .Include(f => f.FeedBacks!)
+                .Include(hf => hf.HomestayFacilities)
+                .ThenInclude(fa => fa.Facility)
+                .FirstOrDefaultAsync(h => h.Id == homeStayID);
 
             if (getDetail == null)
             {
@@ -246,17 +313,17 @@ namespace API.Controllers
             var response = new
             {
                 getDetail.Id,
-                getDetail.HomeStay.Name,
-                getDetail.HomeStay.MainImage,
-                getDetail.HomeStay.Address,
-                getDetail.HomeStay.City,
-                getDetail.HomeStay.CheckInTime,
-                getDetail.HomeStay.CheckOutTime,
-                getDetail.HomeStay.OpenIn,
-                getDetail.HomeStay.Description,
-                getDetail.HomeStay.Standar,
-                getDetail.HomeStay.isDeleted,
-                getDetail.HomeStay.isBooked,
+                getDetail.Name,
+                getDetail.MainImage,
+                getDetail.Address,
+                getDetail.City,
+                getDetail.CheckInTime,
+                getDetail.CheckOutTime,
+                getDetail.OpenIn,
+                getDetail.Description,
+                getDetail.Standar,
+                getDetail.isDeleted,
+                getDetail.isBooked,
                 Calendar = _calendarRepository
                     .FindWithInclude(c => c.HomeStay)
                     .Where(c => c.HomeStay.Id == homeStayID)
@@ -266,22 +333,31 @@ namespace API.Controllers
                         c.Date,
                         c.Price
                     }).ToList(),
-                HomeStayImage = getDetail.HomeStay.HomestayImages!.Select(image => new
+                HomeStayImage = getDetail.HomestayImages!.Select(image => new
                 {
                     Image = image.Image,
                 }),
-                Amenities = getDetail.HomeStay.HomestayAmenities!.Select(ha => new
+                Amenities = getDetail.HomestayAmenities!.Select(ha => new
                 {
                     ha.Amenity.Id,
                     ha.Amenity.Name
                 }).ToList(),
-                FeedBack = getDetail.HomeStay.FeedBacks!.Where(f => !f.isDeleted).Select(f => new
+
+                FeedBack = getDetail.FeedBacks.Where(f => !f.isDeleted).Select(f => new
                 {
                     f.Id,
                     Fullname = f.User.FullName,
                     f.Description,
                     f.Rating
-                })
+                }),
+
+                Facilities = getDetail.HomestayFacilities.Select(hf => new
+                {
+                    hf.Facility.Name,
+                    hf.Facility.Description
+
+                }).ToList()
+
             };
 
             return Ok(response);
