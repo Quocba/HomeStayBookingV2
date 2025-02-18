@@ -1,4 +1,5 @@
-﻿using BusinessObject.DTO;
+﻿using System.Drawing;
+using BusinessObject.DTO;
 using BusinessObject.Entities;
 using BusinessObject.Interfaces;
 using BusinessObject.Shares;
@@ -21,6 +22,7 @@ namespace API.Controllers
         IRepository<Facility> _facilityRepository
             ) : ControllerBase
     {
+
 
         [HttpPost("add-home-stay-facility")]
         public async Task<IActionResult> AddHomeStayFacility(AddHomeStayFacilityDTO request)
@@ -392,7 +394,26 @@ namespace API.Controllers
                 await _homeStayImageRepository.AddAsync(addImage);
             }
             await _homeStayImageRepository.SaveAsync();
-            return Ok(new {Message = "Add Image Success"});
+            return Ok(new { Message = "Add Image Success" });
+        }
+
+        [HttpGet("get-home-stay-image")]
+        public async Task<IActionResult> GetHomeStayImage([FromQuery] Guid homeStayID)
+        {
+            var listImage = await _homeStayImageRepository.FindWithInclude(h => h.HomeStay)
+                                                    .Where(h => h.HomeStayID == homeStayID)
+                                                    .ToListAsync();
+            if (listImage.Any())
+            {
+                var response = listImage.Select(image => new
+                {
+                    image.Id,
+                    image.Image,
+
+                }).ToList();
+                return Ok(response);
+            }
+            return NotFound();
         }
 
         [HttpDelete("delete-home-stay-image")]
@@ -416,6 +437,7 @@ namespace API.Controllers
 
             return Ok(new { Message = "Images deleted successfully" });
         }
+
 
         [HttpGet("get-city-list")]
         public async Task<IActionResult> GetAllCity()

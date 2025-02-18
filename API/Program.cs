@@ -113,8 +113,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: "MyAllowSpecificOrigins",
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:5290")
+                          policy.WithOrigins("http://localhost:5290", "http://localhost:3000")
                                 .AllowAnyHeader()
+                                .AllowAnyOrigin()
                                 .AllowAnyMethod();
                       });
 });
@@ -123,21 +124,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-});
+
 var app = builder.Build();
 
  app.UseSwagger();
  app.UseSwaggerUI();
-app.UseCors("AllowAllOrigins");
+app.UseCors("MyAllowSpecificOrigins");
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
@@ -155,6 +147,6 @@ app.UseCors(MyAllowSpecificOrigins);
 
 //app.UseMiddleware<ApiKeyMiddleware>();
 app.UseMiddleware<ApiUserIdMiddleware>();
-//app.UseMiddleware<ApiResponseMiddleware>();
+app.UseMiddleware<ApiResponseMiddleware>();
 
 app.Run();
