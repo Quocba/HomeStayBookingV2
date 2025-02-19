@@ -87,7 +87,7 @@ namespace DataAccess.Repositories
             user.Address = u.Address;
             user.Email = u.Email;
             user.RoleId = u.RoleId;
-
+            user.Avatar = u.Avatar;
             return true;
         }
 
