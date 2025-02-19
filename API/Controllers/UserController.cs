@@ -38,6 +38,7 @@ namespace API.Controllers
                 Address = request.Address,
                 Phone = request.Phone,
                 RoleId = request.RoleId,
+                Avatar = request.Avatar
             });
 
             await _userRepository.SaveAsync();
