@@ -172,7 +172,8 @@ namespace DataAccess.Repositories
                     IsEmailConfirmed = u.IsEmailConfirmed,
                     IsDeleted = u.IsDeleted,
                     RoleId = u.RoleId,
-                    Role = u.Role.Name
+                    Role = u.Role.Name,
+                    Avatar = u.Avatar
                 })
                 .FirstOrDefaultAsync();
 

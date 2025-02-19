@@ -23,8 +23,7 @@ namespace BusinessObject.DTO
         public string CheckOutTime { get; set; }
         public List<string> Images { get; set; } = new List<string>();
         
-        public DateTime Date {  get; set; }
-        public Decimal Price {  get; set; }
+        public DateTime Date {  get; set; }        
         public bool IsDeleted { get; set; } = false;
     }
 }

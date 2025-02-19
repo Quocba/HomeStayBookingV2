@@ -21,5 +21,6 @@ namespace BusinessObject.DTO
 
         public int RoleId { get; set; }
         public string Role { get; set; }
+        public string Avatar {  get; set; }
     }
 }

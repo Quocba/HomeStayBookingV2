@@ -100,7 +100,7 @@ namespace API.Controllers
             if (confirm) await _userRepository.ConfirmEmail(userId);
 
             await _userRepository.SaveAsync();
-            return Ok(confirm);
+            return Redirect("http://localhost:3000");
         }
 
         [HttpPost("resend-confirm")]
