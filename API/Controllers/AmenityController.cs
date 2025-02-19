@@ -25,7 +25,7 @@ namespace API.Controllers
 
             foreach (var amenityName in request.AmenityNames)
             {
-                if (existingAmenityNames.Contains(amenityName.ToLower()))
+                if (existingAmenityNames.Equals(amenityName.ToLower()))
                 {
                     duplicateNames.Add(amenityName);
                 }

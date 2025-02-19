@@ -18,7 +18,7 @@ namespace API.Controllers
         {
             try
             {
-                var existingName = (await _facilityRepository.GetAllAsync())
+                var existingName = (await _facilityRepository.GetAllAsync()).Where(x => x.IsDeleted == false)
                                    .Select(x => x.Name)
                                    .ToList(); 
 
@@ -70,7 +70,7 @@ namespace API.Controllers
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAll()
         {
-            var listFacility = await _facilityRepository.GetAllAsync();
+            var listFacility = await _facilityRepository.Find(x => x.IsDeleted != true).ToListAsync();
             return Ok(listFacility);
         }
 
@@ -83,7 +83,10 @@ namespace API.Controllers
 
             if (!delete.Any()) return NotFound();
 
-            _facilityRepository.DeleteRange(delete);
+            foreach (var facility in delete) { 
+
+               facility.IsDeleted = true;
+            }
             await _facilityRepository.SaveAsync();
             return Ok(new { Message = "Delete Facility Success" });
         }
