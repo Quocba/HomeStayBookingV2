@@ -102,19 +102,21 @@ namespace API.Controllers
                 };
                 await _homeStayRepository.AddAsync(createHomeStay);
 
-            foreach (var image in request.Images)
-                {
-                    Guid imageID = Guid.NewGuid();
-                    HomeStayImage addImage = new HomeStayImage
-                    {
-                        Id = imageID,
-                        Image = image,
-                        HomeStay = createHomeStay
-                    };
+            foreach (var item in request.Images)
+            {
 
-                    await _homeStayImageRepository.AddAsync(addImage);
-                }
-                    await _homeStayImageRepository.SaveAsync();
+                Guid imageID = Guid.NewGuid();
+                HomeStayImage addImage = new HomeStayImage
+                {
+                    Id = imageID,
+                    Image = item,
+                    HomeStay = createHomeStay,
+                    isDeleted = false
+                };
+                await _homeStayImageRepository.AddAsync(addImage);
+            }
+
+            await _homeStayRepository.SaveAsync();
                 
 
             return Ok(new { message = "Add Home Stay Success." });
