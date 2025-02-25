@@ -360,6 +360,26 @@ namespace API.Controllers
             var fileName = $"BookingList_{homeStayID}.xlsx";
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
+
+        [HttpGet("analyze-revenue-system-home-stay")]
+        public async Task<IActionResult> AnalyzeRevenueSystemHomeStay()
+        {
+            var revenueList =  (_bookingRepository.FindWithInclude(b => b.Calendars))
+                .SelectMany(b => b.Calendars, (b, c) => new { b, c.HomeStay })
+                .GroupBy(h => new { h.HomeStay.Id, h.HomeStay.Name, h.HomeStay.MainImage, h.HomeStay.Address })
+                .Select(g => new
+                {
+                    HomeStayID = g.Key.Id,
+                    MainImage = g.Key.MainImage,
+                    HomeStayName = g.Key.Name,
+                    Address = g.Key.Address,
+                    TotalRevenue = g.Sum(x => x.b.TotalPrice)
+                })
+                .ToList();
+
+            return Ok(revenueList);
+        }
+
     }
-    }
+}
 
