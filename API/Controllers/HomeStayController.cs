@@ -343,6 +343,12 @@ namespace API.Controllers
                 {
                     ha.Amenity.Id,
                     ha.Amenity.Name
+                }).ToList(),
+                Facility = getDetail.HomestayFacilities!.Select(hf => new
+                {
+                    hf.FacilityID,
+                    hf.Facility.Name,
+                    hf.Facility.Description
                 }).ToList()
             };
             return Ok(response);
@@ -466,9 +472,68 @@ namespace API.Controllers
                  {
                      ha.Amenity.Id,
                      ha.Amenity.Name
-                 }).ToList()
+                 }).ToList(),
+                Facility = h.HomestayFacilities!.Select(hf => new
+                {
+                    hf.FacilityID,
+                    hf.Facility.Name,
+                    hf.Facility.Description
+                }).ToList()
             }).ToList();
 
+            return Ok(response);
+        }
+
+        [HttpGet("get-home-stay-by-user")]
+        public async Task<IActionResult> GetHomeStayByUser([FromQuery] Guid userID)
+        {
+            var listHomeStay = await _homeStayRepository
+                        .FindWithInclude(h => h.Calendars!)
+                        .Include(h => h.HomestayAmenities!)
+                        .ThenInclude(ha => ha.Amenity)
+                        .Include(hf => hf.HomestayFacilities)
+                        .ThenInclude(fa => fa.Facility)
+                        .Where(u => u.UserID == userID).ToListAsync();
+            if (listHomeStay.Count == 0)
+            {
+                return NotFound();
+            }
+
+            var response = listHomeStay.Select(h => new
+            {
+                h.Id,
+                h.Name,
+                h.MainImage,
+                h.Address,
+                h.City,
+                h.CheckInTime,
+                h.CheckOutTime,
+                h.OpenIn,
+                h.Description,
+                h.Standar,
+                h.isDeleted,
+                h.isBooked,
+
+                Calendar = h.Calendars!.Select(c => new
+                {
+                    c.Id,
+                    c.Date,
+                    c.Price
+                }).ToList(),
+
+                Amenities = h.HomestayAmenities!
+                    .Select(ha => new
+                    {
+                        ha.Amenity.Id,
+                        ha.Amenity.Name
+                    }).ToList(),
+                Facility = h.HomestayFacilities!.Select(hf => new
+                {
+                    hf.FacilityID,
+                    hf.Facility.Name,
+                    hf.Facility.Description
+                }).ToList()
+            }).ToList();
             return Ok(response);
         }
 
