@@ -305,6 +305,7 @@ namespace API.Controllers
                 .ThenInclude(ha => ha.Amenity)
                 .Include(hs => hs.HomestayImages!)
                 .Include(h => h.HomestayFacilities!)
+                .ThenInclude(h => h.Facility)
                 .FirstOrDefaultAsync(h => h.Id == homeStayID);
 
             if (getDetail == null)
@@ -333,7 +334,8 @@ namespace API.Controllers
                     {
                         c.Id,
                         c.Date,
-                        c.Price
+                        c.Price,
+                        c.isDeleted
                     }).ToList(),
                 HomeStayImage = getDetail.HomestayImages!.Select(image => new
                 {
@@ -444,6 +446,9 @@ namespace API.Controllers
                                     .FindWithInclude(h => h.Calendars!)
                                     .Include(h => h.HomestayAmenities!)
                                     .ThenInclude(ha => ha.Amenity)
+                                    .Include(f => f.HomestayFacilities!)
+                                    .ThenInclude(hf => hf.Facility)
+                                    .Include(f => f.FeedBacks)
                                     .Where(x => x.City.Equals(city)).ToListAsync();
             var response = getHomeStay.Select(h => new
             {
@@ -537,7 +542,63 @@ namespace API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("search-home-stay")]
+        public async Task<IActionResult> SearchHomeStay([FromQuery]SearchHomeStayDTO request)
+        {
+            var homeStays = await _homeStayRepository
+                .FindWithInclude()
+                .Include(h => h.Calendars!)
+                    .ThenInclude(c => c.Booking)
+                .Include(h => h.HomestayAmenities!)
+                    .ThenInclude(ha => ha.Amenity)
+                .Include(h => h.HomestayFacilities!)
+                    .ThenInclude(fa => fa.Facility)
+                .Where(h => h.Calendars.All(c =>
+                    c.Booking == null ||
+                    c.Booking.CheckOutDate < request.CheckInDate ||
+                    c.Booking.CheckInDate > request.CheckOutDate 
+                ))
+                .ToListAsync();
 
+            var response = homeStays.Select(h => new
+            {
+                h.Id,
+                h.Name,
+                h.MainImage,
+                h.Address,
+                h.City,
+                h.CheckInTime,
+                h.CheckOutTime,
+                h.OpenIn,
+                h.Description,
+                h.Standar,
+                h.isDeleted,
+                h.isBooked,
+
+                Calendar = h.Calendars!.Select(c => new
+                {
+                    c.Id,
+                    c.Date,
+                    c.Price
+                }).ToList(),
+
+                Amenities = h.HomestayAmenities!
+                   .Select(ha => new
+                   {
+                       ha.Amenity.Id,
+                       ha.Amenity.Name
+                   }).ToList(),
+                Facility = h.HomestayFacilities!.Select(hf => new
+                {
+                    hf.FacilityID,
+                    hf.Facility.Name,
+                    hf.Facility.Description
+                }).ToList()
+            }).ToList();
+
+            return Ok(response);
+
+        }
 
     }
 }

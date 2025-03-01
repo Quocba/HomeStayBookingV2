@@ -115,6 +115,11 @@ namespace API.Controllers
                 calendar.BookingID = booking.Id;
             }
 
+            // After booking change isBooked in home stay table is true
+            var getHomeStay = await _homeStayRepository.GetByIdAsync(calendars.FirstOrDefault()?.HomeStayID);
+            getHomeStay.isBooked = true;
+
+            await _homeStayRepository.UpdateAsync(getHomeStay);
             await _bookingRepository.AddAsync(booking);
             await _calendarRepository.SaveAsync();
             await _bookingRepository.SaveAsync();
@@ -321,7 +326,7 @@ namespace API.Controllers
 
             // Header row
             string[] headers = {
-            "HomeStay ID", "Check-in Date", "Check-out Date", "Unit Price", "Total Price", "Status",
+            "Booking ID", "Check-in Date", "Check-out Date", "Unit Price", "Total Price", "Status",
             "Cancellation Reason", "HomeStay Name"
         };
 

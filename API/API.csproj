@@ -29,4 +29,8 @@
     <ProjectReference Include="..\PayOSService\PayOSService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
 </Project>

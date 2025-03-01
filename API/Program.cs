@@ -18,6 +18,8 @@ using DataAccess.EmailHandler;
 using Microsoft.Extensions.FileProviders;
 using PayOSService.Services;
 using PayOSService.Config;
+using API.BackgroundService;
+using BusinessObject.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,7 +77,6 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
 builder.Services.AddScoped<IPayOSService, PayOSService.Services.PayOSService>();
 
 builder.Services.Configure<PayOSConfig>(
@@ -124,6 +125,13 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
+
+builder.Services.AddScoped<IRepository<Booking>, Repository<Booking>>();
+builder.Services.AddScoped<IRepository<HomeStay>, Repository<HomeStay>>();
+builder.Services.AddScoped<IRepository<Calendar>, Repository<Calendar>>();
+
+builder.Services.AddSingleton<IHostedService, BookingService>();
+
 
 var app = builder.Build();
 
