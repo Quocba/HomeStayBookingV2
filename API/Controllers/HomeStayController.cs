@@ -80,6 +80,26 @@ namespace API.Controllers
 
         }
 
+        [HttpGet("search-hotel-by-location")]
+        public async Task<IActionResult> GetHotelByLocation([FromQuery] string location)
+        {
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"https://booking-com.p.rapidapi.com/v1/hotels/locations?name={location}&locale=en-gb"),
+                Headers ={
+                    { "x-rapidapi-key", "52bcd7f98bmsh281c68c3f9d7c44p169949jsn21d2e2049b30" },
+                    { "x-rapidapi-host", "booking-com.p.rapidapi.com" }
+                }
+            };
+            using(var reponse = await _httpClient.SendAsync(request))
+            {
+                reponse.EnsureSuccessStatusCode();
+                var responseBody = await reponse.Content.ReadAsStringAsync();
+                return Ok(responseBody);
+            }
+        }
+
         [HttpPost("add-home-stay")]
         public async Task<IActionResult> AddHomeStay([FromHeader(Name = "X-User-Id")] Guid userID,[FromBody]AddHomeStayRequest request)
         {
