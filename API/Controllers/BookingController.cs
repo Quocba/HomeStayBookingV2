@@ -77,12 +77,14 @@ namespace API.Controllers
             var sortedDates = calendars.Select(c => c.Date).OrderBy(d => d).ToList();
             var firstDate = sortedDates.First();
             var lastDate = sortedDates.Last();
+            var replaceCheckInDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
+            var replaceCheckOutDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
 
-            DateTime checkInDate = firstDate.Date.Add(TimeSpan.Parse(homeStay.CheckInTime));
-            DateTime checkOutDate = lastDate.AddDays(1).Date.Add(TimeSpan.Parse(homeStay.CheckOutTime));
+            DateTime checkInDate = firstDate.Date.Add(TimeSpan.Parse(replaceCheckInDate));
+            DateTime checkOutDate = lastDate.AddDays(1).Date.Add(TimeSpan.Parse(replaceCheckOutDate));
 
             if (firstDate == lastDate)
-                checkOutDate = firstDate.Date.AddDays(1).Add(TimeSpan.Parse(homeStay.CheckOutTime));
+                checkOutDate = firstDate.Date.AddDays(1).Add(TimeSpan.Parse(homeStay.CheckOutTime.Replace("PM","").Replace("AM","")));
 
             decimal totalPrice = calendars.Sum(c => c.Price);
 
@@ -383,6 +385,39 @@ namespace API.Controllers
                 .ToList();
 
             return Ok(revenueList);
+        }
+
+        [HttpGet("get-booking-by-home-stay")]
+        public async Task<IActionResult> GetBookingByHomeStay([FromQuery] Guid homeStayID)
+        {
+            var listBooking = await _bookingRepository.FindWithInclude()
+                                                .Include(x => x.Calendars)
+                                                .ThenInclude(x => x.HomeStay)
+                                                .Include(u => u.User)
+                                                .Where(h => h.Calendars.Any(x => x.HomeStayID == homeStayID))
+                                                .ToListAsync();
+            var response = listBooking.Select(booking => new
+            {
+                booking.Id,
+                booking.CheckInDate,
+                booking.CheckOutDate,
+                booking.TotalPrice,
+                booking.UnitPrice,
+                booking.Status,
+                booking.ReasonCancel,
+                booking.isDeleted,
+                User = new 
+                {
+                    FullName = booking.User.FullName,
+                    Email = booking.User.Email,
+                    Phone = booking.User.Phone,
+                    Address = booking.User.Address,
+                    Avatar = booking.User.Avatar,
+                    Gender = booking.User.Gender,
+                    CitizenID = booking.User.CitizenID
+                }
+            }).ToList();
+            return Ok(response);
         }
 
     }
