@@ -110,7 +110,7 @@ namespace API.Controllers
             return Ok(new { Message = "Calendar updated successfully!" });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> SoftDelete(Guid id)
         {
             var calendar = await _calendarRepository.GetByIdAsync(id);

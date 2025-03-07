@@ -76,9 +76,9 @@ namespace DataAccess.Context
                     {
                         Id = adminId,
                         Email = "admin@gmail.com",
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("aA@123"),
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123@"),
                         FullName = "admin",
-                        Address = "Ninh Kiều, Cần Thơ",
+                        Address = "Hà Nội",
                         Phone = "0987654321",
                         IsEmailConfirmed = true,
                         RoleId = 1
@@ -86,10 +86,10 @@ namespace DataAccess.Context
                     new User()
                     {
                         Id = staffId,
-                        Email = "staff@gmail.com",
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("aA@123"),
-                        FullName = "staff",
-                        Address = "Bình Thủy, Cần Thơ",
+                        Email = "manager@gmail.com",
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Manager123@"),
+                        FullName = "manager",
+                        Address = "Hà Nội",
                         Phone = "0987654123",
                         IsEmailConfirmed = true,
                         RoleId = 2
@@ -98,9 +98,9 @@ namespace DataAccess.Context
                     {
                         Id = userId,
                         Email = "user@gmail.com",
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("aA@123"),
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("User123@"),
                         FullName = "user",
-                        Address = "Phong Điền, Cần Thơ",
+                        Address = "Hà Nội",
                         Phone = "0987654312",
                         IsEmailConfirmed = true,
                         RoleId = 3
