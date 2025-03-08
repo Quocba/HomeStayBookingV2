@@ -118,10 +118,11 @@ namespace API.Controllers
             }
 
             // After booking change isBooked in home stay table is true
-            var getHomeStay = await _homeStayRepository.GetByIdAsync(calendars.FirstOrDefault()?.HomeStayID);
-            getHomeStay.isBooked = true;
 
-            await _homeStayRepository.UpdateAsync(getHomeStay);
+            var getCalendar = await _calendarRepository.GetByIdAsync(calendars.FirstOrDefault()?.Id);
+            getCalendar.isBooked = true;
+
+            await _calendarRepository.UpdateAsync(getCalendar);
             await _bookingRepository.AddAsync(booking);
             await _calendarRepository.SaveAsync();
             await _bookingRepository.SaveAsync();

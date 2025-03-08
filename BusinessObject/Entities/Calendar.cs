@@ -13,6 +13,8 @@ namespace BusinessObject.Entities
     {
         public DateTime Date { get; set; }
         public Decimal Price {  get; set; }
+        public bool isBooked { get; set; } = false;
+
         public Guid HomeStayID { get; set; }
 
         [ForeignKey("HomeStayID")]

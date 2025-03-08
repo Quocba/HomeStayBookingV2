@@ -113,7 +113,6 @@ namespace API.Controllers
                     Address = request.Address,
                     CheckInTime = request.CheckInTime,
                     CheckOutTime = request.CheckOutTime,
-                    isBooked = request.isBlocked,
                     isDeleted = request.IsDeleted,
                     City = request.City,
                     OpenIn = request.OpenIn,
@@ -290,13 +289,13 @@ namespace API.Controllers
                 h.Description,
                 h.Standar,
                 h.isDeleted,
-                h.isBooked,
 
                 Calendar = h.Calendars!.Select(c => new
                 {
                     c.Id,
                     c.Date,
-                    c.Price
+                    c.Price,
+                    c.isBooked
                 }).ToList(),
 
                 Amenities = h.HomestayAmenities!
@@ -346,7 +345,6 @@ namespace API.Controllers
                 getDetail.Description,
                 getDetail.Standar,
                 getDetail.isDeleted,
-                getDetail.isBooked,
                 Calendar = _calendarRepository
                     .FindWithInclude(c => c.HomeStay)
                     .Where(c => c.HomeStay.Id == homeStayID)
@@ -355,7 +353,8 @@ namespace API.Controllers
                         c.Id,
                         c.Date,
                         c.Price,
-                        c.isDeleted
+                        c.isDeleted,
+                        c.isBooked
                     }).ToList(),
                 HomeStayImage = getDetail.HomestayImages!.Select(image => new
                 {
@@ -483,13 +482,14 @@ namespace API.Controllers
                 h.Description,
                 h.Standar,
                 h.isDeleted,
-                h.isBooked,
+
 
                 Calendar = h.Calendars!.Select(c => new
                 {
                     c.Id,
                     c.Date,
-                    c.Price
+                    c.Price,
+                    c.isBooked
                 }).ToList(),
 
                 Amenities = h.HomestayAmenities!
@@ -537,13 +537,14 @@ namespace API.Controllers
                 h.Description,
                 h.Standar,
                 h.isDeleted,
-                h.isBooked,
+                
 
                 Calendar = h.Calendars!.Select(c => new
                 {
                     c.Id,
                     c.Date,
-                    c.Price
+                    c.Price,
+                    c.isBooked
                 }).ToList(),
 
                 Amenities = h.HomestayAmenities!
@@ -593,13 +594,13 @@ namespace API.Controllers
                 h.Description,
                 h.Standar,
                 h.isDeleted,
-                h.isBooked,
 
                 Calendar = h.Calendars!.Select(c => new
                 {
                     c.Id,
                     c.Date,
-                    c.Price
+                    c.Price,
+                    c.isBooked
                 }).ToList(),
 
                 Amenities = h.HomestayAmenities!

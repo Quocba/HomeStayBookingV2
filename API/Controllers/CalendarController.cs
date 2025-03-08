@@ -75,7 +75,8 @@ namespace API.Controllers
                         Price = dto.Price,
                         HomeStay = homeStay,
                         Booking = null,
-                        isDeleted = false
+                        isDeleted = false,
+                        isBooked = false
                     });
                 }
             }

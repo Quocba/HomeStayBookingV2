@@ -99,6 +99,9 @@ namespace DataAccess.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<bool>("isBooked")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
 
@@ -281,9 +284,6 @@ namespace DataAccess.Migrations
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("isBooked")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
@@ -582,42 +582,42 @@ namespace DataAccess.Migrations
                         new
                         {
                             Id = new Guid("d87b4b72-609b-4979-b758-7771481da883"),
-                            Address = "Ninh Kiều, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 19, 18, 55, 30, 275, DateTimeKind.Utc).AddTicks(3676),
+                            Address = "Hà Nội",
+                            CreatedAt = new DateTime(2025, 3, 7, 22, 56, 31, 305, DateTimeKind.Utc).AddTicks(6499),
                             Email = "admin@gmail.com",
                             FullName = "admin",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 19, 18, 55, 30, 275, DateTimeKind.Utc).AddTicks(3683),
-                            PasswordHash = "$2a$11$QmaoNKpHvSXaH7z.L5JNEu2BqPOqCAA11K3j5fgTSXyZ/DzlH3k9q",
+                            LastModifiedAt = new DateTime(2025, 3, 7, 22, 56, 31, 305, DateTimeKind.Utc).AddTicks(6508),
+                            PasswordHash = "$2a$11$5NUTUeOOeoGnOsUDF8dLqOaeX5JxorObA0yTGhR00JlhZG9SD0JwG",
                             Phone = "0987654321",
                             RoleId = 1
                         },
                         new
                         {
                             Id = new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"),
-                            Address = "Bình Thủy, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 19, 18, 55, 30, 386, DateTimeKind.Utc).AddTicks(7530),
-                            Email = "staff@gmail.com",
-                            FullName = "staff",
+                            Address = "Hà Nội",
+                            CreatedAt = new DateTime(2025, 3, 7, 22, 56, 31, 421, DateTimeKind.Utc).AddTicks(2158),
+                            Email = "manager@gmail.com",
+                            FullName = "manager",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 19, 18, 55, 30, 386, DateTimeKind.Utc).AddTicks(7532),
-                            PasswordHash = "$2a$11$OXNTN3DX/qiCOsb85xT/j.gD3wmhx/HXQbhxiokqYA.YKOfcgpR5e",
+                            LastModifiedAt = new DateTime(2025, 3, 7, 22, 56, 31, 421, DateTimeKind.Utc).AddTicks(2168),
+                            PasswordHash = "$2a$11$Kh59Mm4Ah5cw3VvqflytqOWepNXcNzwotLxnrU52dIOLPwUOpELYC",
                             Phone = "0987654123",
                             RoleId = 2
                         },
                         new
                         {
                             Id = new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"),
-                            Address = "Phong Điền, Cần Thơ",
-                            CreatedAt = new DateTime(2025, 2, 19, 18, 55, 30, 498, DateTimeKind.Utc).AddTicks(2447),
+                            Address = "Hà Nội",
+                            CreatedAt = new DateTime(2025, 3, 7, 22, 56, 31, 537, DateTimeKind.Utc).AddTicks(6228),
                             Email = "user@gmail.com",
                             FullName = "user",
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            LastModifiedAt = new DateTime(2025, 2, 19, 18, 55, 30, 498, DateTimeKind.Utc).AddTicks(2448),
-                            PasswordHash = "$2a$11$EC6i/JG6s4X3z6S4ZQdiAO2lMDSLJp67YvGMcID9kRLoDXnfITUH6",
+                            LastModifiedAt = new DateTime(2025, 3, 7, 22, 56, 31, 537, DateTimeKind.Utc).AddTicks(6238),
+                            PasswordHash = "$2a$11$K1/zw.KR91vOXLDJDSsJIuZDpyZNED/A8069.3kzA9ISwcWE1uQde",
                             Phone = "0987654312",
                             RoleId = 3
                         });

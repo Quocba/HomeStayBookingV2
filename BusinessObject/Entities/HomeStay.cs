@@ -33,7 +33,6 @@ namespace BusinessObject.Entities
         [MaxLength(255)]
         public string City { get; set; }
 
-        public bool isBooked {  get; set; }
 
         [MaxLength(255)]
         public string CheckInTime {  get; set; }

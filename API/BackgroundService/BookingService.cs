@@ -50,19 +50,13 @@ namespace API.BackgroundService
 
                     if (!expiredCalendars.Any()) return;
 
-                    var homeStaysToUpdate = expiredCalendars
-                        .Select(c => c.HomeStay)
-                        .Distinct()
-                        .Where(hs => hs.isBooked)
-                        .ToList();
-
-                    foreach (var homeStay in homeStaysToUpdate)
+                    foreach (var calendar in expiredCalendars)
                     {
-                        homeStay.isBooked = false;
-                        await homeStayRepository.UpdateAsync(homeStay);
+                        calendar.isBooked = false;
+                        await calendarRepository.UpdateAsync(calendar);
                     }
 
-                    await homeStayRepository.SaveAsync();
+                    await calendarRepository.SaveAsync();
                     _logger.LogInformation("Updated isBooked status for expired bookings.");
                 }
                 catch (Exception ex)

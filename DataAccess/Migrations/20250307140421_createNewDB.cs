@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class dbinit : Migration
+    public partial class createNewDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,6 +24,22 @@ namespace DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Amenity", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Facility",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdateAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Facility", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -226,6 +242,27 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Transactions",
+                columns: table => new
+                {
+                    ID = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookingID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PaymentLink = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Transactions", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_Transactions_Booking_BookingID",
+                        column: x => x.BookingID,
+                        principalTable: "Booking",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Calendar",
                 columns: table => new
                 {
@@ -295,6 +332,29 @@ namespace DataAccess.Migrations
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_HomestayAmenity_HomeStay_HomeStayID",
+                        column: x => x.HomeStayID,
+                        principalTable: "HomeStay",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HomeStayFacility",
+                columns: table => new
+                {
+                    HomeStayID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FacilityID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HomeStayFacility", x => new { x.HomeStayID, x.FacilityID });
+                    table.ForeignKey(
+                        name: "FK_HomeStayFacility_Facility_FacilityID",
+                        column: x => x.FacilityID,
+                        principalTable: "Facility",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_HomeStayFacility_HomeStay_HomeStayID",
                         column: x => x.HomeStayID,
                         principalTable: "HomeStay",
                         principalColumn: "Id");
@@ -385,9 +445,9 @@ namespace DataAccess.Migrations
                 columns: new[] { "Id", "Address", "Avatar", "BirhDay", "CitizenID", "CreatedAt", "Email", "FullName", "Gender", "IsDeleted", "IsEmailConfirmed", "LastModifiedAt", "PasswordHash", "Phone", "RoleId" },
                 values: new object[,]
                 {
-                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Bình Thủy, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 20, 45, 1, 768, DateTimeKind.Utc).AddTicks(2280), "staff@gmail.com", "staff", null, false, true, new DateTime(2025, 2, 15, 20, 45, 1, 768, DateTimeKind.Utc).AddTicks(2292), "$2a$11$x5/9o50xsIzCe9u3x.S5/uPwTgTCmTc8ZlnvsvtbbY/V9IQgmKlT6", "0987654123", 2 },
-                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Phong Điền, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 20, 45, 1, 887, DateTimeKind.Utc).AddTicks(7596), "user@gmail.com", "user", null, false, true, new DateTime(2025, 2, 15, 20, 45, 1, 887, DateTimeKind.Utc).AddTicks(7609), "$2a$11$/HkbbOhjB3m0z3mymHs1T.yJ2wf5h2nAZnQVoC268lW4ITT.se0Gm", "0987654312", 3 },
-                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Ninh Kiều, Cần Thơ", null, null, null, new DateTime(2025, 2, 15, 20, 45, 1, 650, DateTimeKind.Utc).AddTicks(2863), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 2, 15, 20, 45, 1, 650, DateTimeKind.Utc).AddTicks(2870), "$2a$11$qxj50p.JIWTQ5A59radti.CW2b6dH42hCod8fewf2WJ.th.LExcTO", "0987654321", 1 }
+                    { new Guid("4b7b0200-70f9-416a-9a3f-29ccab0deec4"), "Hà Nội", null, null, null, new DateTime(2025, 3, 7, 21, 4, 20, 237, DateTimeKind.Utc).AddTicks(7118), "manager@gmail.com", "manager", null, false, true, new DateTime(2025, 3, 7, 21, 4, 20, 237, DateTimeKind.Utc).AddTicks(7125), "$2a$11$jeKY1HKLW2ZVRtMOANcP6uCEX5Bza2Y2wlsSwHVv5f21BdI7KAIZS", "0987654123", 2 },
+                    { new Guid("a85f272f-353e-4ff6-be2b-a15f1e7c0c47"), "Hà Nội", null, null, null, new DateTime(2025, 3, 7, 21, 4, 20, 350, DateTimeKind.Utc).AddTicks(8034), "user@gmail.com", "user", null, false, true, new DateTime(2025, 3, 7, 21, 4, 20, 350, DateTimeKind.Utc).AddTicks(8043), "$2a$11$9v5xA/Ze0zXJEjrjbHPB9O4OpNW4Zw5G//3XDKZ9yVy5ICXi/Y5la", "0987654312", 3 },
+                    { new Guid("d87b4b72-609b-4979-b758-7771481da883"), "Hà Nội", null, null, null, new DateTime(2025, 3, 7, 21, 4, 20, 124, DateTimeKind.Utc).AddTicks(5920), "admin@gmail.com", "admin", null, false, true, new DateTime(2025, 3, 7, 21, 4, 20, 124, DateTimeKind.Utc).AddTicks(5926), "$2a$11$e7mSJ6m3ZUHnWZlocIRwOuTP0mF7VTRzWHy2tq8LyvlXHob2BF8im", "0987654321", 1 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -446,6 +506,11 @@ namespace DataAccess.Migrations
                 column: "AmenityId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HomeStayFacility_FacilityID",
+                table: "HomeStayFacility",
+                column: "FacilityID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HomeStayImage_HomeStayID",
                 table: "HomeStayImage",
                 column: "HomeStayID");
@@ -464,6 +529,11 @@ namespace DataAccess.Migrations
                 name: "IX_RefreshTokens_UserId",
                 table: "RefreshTokens",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_BookingID",
+                table: "Transactions",
+                column: "BookingID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",
@@ -495,6 +565,9 @@ namespace DataAccess.Migrations
                 name: "HomestayAmenity");
 
             migrationBuilder.DropTable(
+                name: "HomeStayFacility");
+
+            migrationBuilder.DropTable(
                 name: "HomeStayImage");
 
             migrationBuilder.DropTable(
@@ -504,19 +577,25 @@ namespace DataAccess.Migrations
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
+                name: "Transactions");
+
+            migrationBuilder.DropTable(
                 name: "UserVoucher");
 
             migrationBuilder.DropTable(
-                name: "Booking");
+                name: "Amenity");
 
             migrationBuilder.DropTable(
-                name: "Amenity");
+                name: "Facility");
 
             migrationBuilder.DropTable(
                 name: "HomeStay");
 
             migrationBuilder.DropTable(
                 name: "Post");
+
+            migrationBuilder.DropTable(
+                name: "Booking");
 
             migrationBuilder.DropTable(
                 name: "Voucher");
