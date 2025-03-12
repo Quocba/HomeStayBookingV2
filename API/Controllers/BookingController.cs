@@ -51,8 +51,8 @@ namespace API.Controllers
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateBooking(
-    [FromHeader(Name = "X-User-Id")] Guid userId,
-    [FromBody] BookingDTO bookingDTO)
+      [FromHeader(Name = "X-User-Id")] Guid userId,
+      [FromBody] BookingDTO bookingDTO)
         {
             if (bookingDTO == null || !bookingDTO.Calenders.Any())
                 return BadRequest(new { Message = "Invalid booking data" });
@@ -84,7 +84,7 @@ namespace API.Controllers
             DateTime checkOutDate = lastDate.AddDays(1).Date.Add(TimeSpan.Parse(replaceCheckOutDate));
 
             if (firstDate == lastDate)
-                checkOutDate = firstDate.Date.AddDays(1).Add(TimeSpan.Parse(homeStay.CheckOutTime.Replace("PM","").Replace("AM","")));
+                checkOutDate = firstDate.Date.AddDays(1).Add(TimeSpan.Parse(homeStay.CheckOutTime.Replace("PM", "").Replace("AM", "")));
 
             decimal totalPrice = calendars.Sum(c => c.Price);
 
@@ -115,14 +115,11 @@ namespace API.Controllers
             foreach (var calendar in calendars)
             {
                 calendar.BookingID = booking.Id;
+                calendar.isBooked = true;
+              await  _calendarRepository.UpdateAsync(calendar);
             }
 
             // After booking change isBooked in home stay table is true
-
-            var getCalendar = await _calendarRepository.GetByIdAsync(calendars.FirstOrDefault()?.Id);
-            getCalendar.isBooked = true;
-
-            await _calendarRepository.UpdateAsync(getCalendar);
             await _bookingRepository.AddAsync(booking);
             await _calendarRepository.SaveAsync();
             await _bookingRepository.SaveAsync();
@@ -156,7 +153,7 @@ namespace API.Controllers
             });
         }
 
-        [HttpGet("confirm")]
+            [HttpGet("confirm")]
         public async Task<IActionResult> ConfirmBooking([FromQuery] Guid bookingId)
         {
             var booking = await _bookingRepository.GetByIdAsync(bookingId);
