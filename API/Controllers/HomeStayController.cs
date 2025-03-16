@@ -325,6 +325,8 @@ namespace API.Controllers
                 .Include(hs => hs.HomestayImages!)
                 .Include(h => h.HomestayFacilities!)
                 .ThenInclude(h => h.Facility)
+                .Include(x => x.FeedBacks)
+                .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(h => h.Id == homeStayID);
 
             if (getDetail == null)
@@ -370,6 +372,15 @@ namespace API.Controllers
                     hf.FacilityID,
                     hf.Facility.Name,
                     hf.Facility.Description
+                }).ToList(),
+                Feeback = getDetail.FeedBacks!.Select(fb => new
+                {
+                    fb.User.FullName,
+                    fb.User.Avatar,
+                    fb.User.Email,
+                    fb.Rating,
+                    fb.Description,
+                    fb.isDeleted
                 }).ToList()
             };
             return Ok(response);

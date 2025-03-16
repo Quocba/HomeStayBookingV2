@@ -32,6 +32,17 @@ namespace API.BackgroundService
             return Task.CompletedTask;
         }
 
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Booking Status Service is stopped.");
+            _timer?.Change(Timeout.Infinite, 0);
+            return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
+        }
         private async Task SetIsBookedForFalse()
         {
             using (var scope = _scopeFactory.CreateScope())
@@ -66,16 +77,5 @@ namespace API.BackgroundService
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Booking Status Service is stopping.");
-            _timer?.Change(Timeout.Infinite, 0);
-            return Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-            _timer?.Dispose();
-        }
     }
 }
