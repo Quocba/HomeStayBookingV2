@@ -235,10 +235,10 @@ namespace API.Controllers
         public async Task<IActionResult> ConfirmBookingStatus([FromQuery] Guid bookingID)
         {
             var getBooking = await _bookingRepository.GetByIdAsync(bookingID);
-            if (getBooking != null && getBooking.Status.Equals("Booked"))
+            if (getBooking != null && getBooking.Status.Equals("Pending"))
             {
 
-                getBooking.Status = "Payment Completed";
+                getBooking.Status = "Paid";
                 await _bookingRepository.UpdateAsync(getBooking);
                 await _bookingRepository.SaveAsync();
                 return Ok(new { Message = "Update Booking Status Success" });
@@ -258,7 +258,7 @@ namespace API.Controllers
 
             var bookingList = calendars
                 .Select(c => c.Booking)
-                .Where(b => b.CheckInDate.Year == year && b.Status == "Payment Completed")
+                .Where(b => b.CheckInDate.Year == year && b.Status == "Paid")
                 .Distinct()
                 .ToList();
 
