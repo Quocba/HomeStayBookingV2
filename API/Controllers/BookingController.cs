@@ -243,7 +243,7 @@ namespace API.Controllers
         public async Task<IActionResult> ConfirmBookingStatus([FromQuery] Guid bookingID)
         {
             var getBooking = await _bookingRepository.GetByIdAsync(bookingID);
-            if (getBooking != null && getBooking.Status.Equals("Pending"))
+            if (getBooking != null && getBooking.Status.Equals("Confirmed"))
             {
 
                 getBooking.Status = "Paid";
@@ -269,7 +269,7 @@ namespace API.Controllers
                 .Where(b => b.CheckInDate.Year == year && b.Status == "Paid")
                 .Distinct()
                 .ToList();
-
+                
             var totalWithMonth = new Dictionary<int, (decimal TotalRevenue, int BookingCount)>();
 
             for (int i = 1; i <= 12; i++)

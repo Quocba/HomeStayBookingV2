@@ -8,7 +8,7 @@ namespace DataAccess.Handlers
 {
     public interface IPasswordHasher
     {
-        string HashPassword(string password);
+        public  string HashPassword(string password);
         bool VerifyPassword(string password, string hash);
     }
 }

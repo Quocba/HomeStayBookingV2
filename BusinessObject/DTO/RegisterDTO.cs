@@ -9,6 +9,7 @@ namespace BusinessObject.DTO
 {
     public class RegisterDTO
     {
+        public Guid Id { get; set; }
         [Required]
         [StringLength(50)]
         public string FullName { get; set; }

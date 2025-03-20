@@ -35,6 +35,15 @@ namespace API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO command)
         {
+            if (command == null || string.IsNullOrWhiteSpace(command.FullName) ||
+                string.IsNullOrWhiteSpace(command.Email) || string.IsNullOrWhiteSpace(command.Phone) ||
+                string.IsNullOrWhiteSpace(command.Address) || string.IsNullOrWhiteSpace(command.Password) ||
+                command.RoleId == 0)
+            {
+                return BadRequest(new { message = "Invalid request data" });
+            }
+
+
             var existingUser = await _userRepository.GetByEmailAsync(command.Email);
 
             if (existingUser != null) throw new InvalidCredentialsException("User already exists");
@@ -158,36 +167,54 @@ namespace API.Controllers
         [HttpPut("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO command)
         {
-            var confirm = await _userRepository.IsVerifyCode(command.UserId, command.Code);
+            try
+            {
+                var confirm = await _userRepository.IsVerifyCode(command.UserId, command.Code);
+                if (!confirm)
+                    return BadRequest("Invalid code");
+                if (confirm) await _userRepository.ChangePassword(command.UserId, _passwordHasher.HashPassword(command.Password));
 
-            if (confirm) await _userRepository.ChangePassword(command.UserId, _passwordHasher.HashPassword(command.Password));
-
-            await _userRepository.SaveAsync();
-            return Ok(new { message = "Reset password successful" });
+                await _userRepository.SaveAsync();
+                return Ok(new { message = "Reset password successful" });
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex) {
+                return StatusCode(500, "Internal Server Error: " + ex.Message);
+            }
         }
 
         [HttpPut("access-token")]
         public async Task<IActionResult> AccessToken([FromBody] AccessTokenDTO command)
         {
+            if (command == null || string.IsNullOrEmpty(command.RefreshToken))
+                throw new ArgumentNullException(nameof(command.RefreshToken), "Refresh token is required");
+
             var user = await _userRepository.GetUserByRefreshToken(command.RefreshToken);
 
-            if (user == null) throw new InvalidCredentialsException("Invalid refresh token");
+                if (user == null) throw new InvalidCredentialsException("Invalid refresh token");
 
-            var accessToken = _tokenService.GenerateJwtToken(user);
+                var accessToken = _tokenService.GenerateJwtToken(user);
 
-            return Ok(new LoginResponse
-            {
-                Email = user.Email,
-                FullName = user.FullName,
-                AccessToken = accessToken,
-                RefreshToken = command.RefreshToken
-            });
+                return Ok(new LoginResponse
+                {
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    AccessToken = accessToken,
+                    RefreshToken = command.RefreshToken
+                });
         }
 
         [HttpPut("block")]
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> Block([FromQuery] Guid id)
         {
+            if (id == Guid.Empty) 
+            {
+                return BadRequest(new { message = "Invalid UserId" });
+            }
             await _userRepository.ChangeIsDeletedUser(id, true);
 
             await _userRepository.SaveAsync();
