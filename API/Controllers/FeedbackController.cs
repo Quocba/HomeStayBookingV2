@@ -24,20 +24,27 @@ namespace API.Controllers
             [FromHeader(Name = "X-User-Id")] Guid userId,
             [FromBody] FeedbackDTO feedbackDto)
         {
-            var feedback = new FeedBack
+            if (userId == Guid.Empty) return BadRequest("User not found");
+            try
             {
-                Id = Guid.NewGuid(),
-                UserID = userId,
-                HomeStay = await _homeStayRepository.GetByIdAsync(feedbackDto.HomestayID),
-                Rating = feedbackDto.Rating,
-                Description = feedbackDto.Description,
-                isDeleted = false
-            };
+                var feedback = new FeedBack
+                {
+                    Id = Guid.NewGuid(),
+                    UserID = userId,
+                    HomeStay = await _homeStayRepository.GetByIdAsync(feedbackDto.HomestayID),
+                    Rating = feedbackDto.Rating,
+                    Description = feedbackDto.Description,
+                    isDeleted = false
+                };
 
-            await _feedbackRepository.AddAsync(feedback);
-            await _feedbackRepository.SaveAsync();
+                await _feedbackRepository.AddAsync(feedback);
+                await _feedbackRepository.SaveAsync();
 
-            return Ok(feedback);
+                return Ok(feedback);
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.ToString());
+            }
         }
 
         [HttpPut("{id}")]
@@ -46,24 +53,38 @@ namespace API.Controllers
             [FromHeader(Name = "X-User-Id")] Guid userId,
             [FromBody] FeedbackDTO feedbackDto)
         {
-            var feedback = await _feedbackRepository.GetByIdAsync(id);
-            if (feedback == null || feedback.isDeleted)
+            try
             {
-                return NotFound("Feedback not found.");
+                if (userId == Guid.Empty || feedbackDto == null) return BadRequest();
+
+                var feedback = await _feedbackRepository.GetByIdAsync(id);
+                if (feedback == null || feedback.isDeleted)
+                {
+                    return NotFound("Feedback not found.");
+                }
+
+                if (feedback.UserID != userId)
+                {
+                    return Forbid("You can only edit your own feedback.");
+                }
+
+
+                if (feedbackDto.Rating < 1 || feedbackDto.Rating > 5)
+                {
+                    return BadRequest("Rating must be between 1 and 5.");
+                }
+
+                feedback.Rating = feedbackDto.Rating;
+                feedback.Description = feedbackDto.Description;
+
+                await _feedbackRepository.UpdateAsync(feedback);
+                await _feedbackRepository.SaveAsync();
+
+                return Ok(feedback);
             }
-
-            if (feedback.UserID != userId)
-            {
-                return Forbid("You can only edit your own feedback.");
+            catch (Exception ex) { 
+                return StatusCode(500, ex.ToString());
             }
-
-            feedback.Rating = feedbackDto.Rating;
-            feedback.Description = feedbackDto.Description;
-
-            await _feedbackRepository.UpdateAsync(feedback);
-            await _feedbackRepository.SaveAsync();
-
-            return Ok(feedback);
         }
 
         [HttpDelete("{id}")]
@@ -71,37 +92,52 @@ namespace API.Controllers
             Guid id,
             [FromHeader(Name = "X-User-Id")] Guid userId)
         {
-            var feedback = await _feedbackRepository.GetByIdAsync(id);
-            if (feedback == null || feedback.isDeleted)
+            try
             {
-                return NotFound(new
+                if (userId == Guid.Empty) return NotFound();
+                var feedback = await _feedbackRepository.GetByIdAsync(id);
+                if (feedback == null || feedback.isDeleted)
                 {
-                    Message = "Feedback not found."
-                });
+                    return NotFound(new
+                    {
+                        Message = "Feedback not found."
+                    });
+                }
+
+                if (feedback.UserID != userId)
+                {
+                    return Forbid();
+                }
+
+                feedback.isDeleted = true;
+
+                await _feedbackRepository.UpdateAsync(feedback);
+                await _feedbackRepository.SaveAsync();
+
+                return Ok(feedback);
             }
+            catch (Exception ex) {
 
-            if (feedback.UserID != userId)
-            {
-                return Forbid();
+                return StatusCode(500, ex.ToString());
             }
-
-            feedback.isDeleted = true;
-
-            await _feedbackRepository.UpdateAsync(feedback);
-            await _feedbackRepository.SaveAsync();
-
-            return Ok(feedback);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFeedbackById(Guid id)
         {
-            var feedback = await _feedbackRepository.GetByIdAsync(id);
-            if (feedback == null || feedback.isDeleted)
+            try
             {
-                return NotFound("Feedback not found.");
+                if (id == Guid.Empty) return BadRequest();
+                var feedback = await _feedbackRepository.GetByIdAsync(id);
+                if (feedback == null || feedback.isDeleted)
+                {
+                    return NotFound("Feedback not found.");
+                }
+                return Ok(feedback);
             }
-            return Ok(feedback);
+            catch (Exception ex) { 
+                return StatusCode(500, ex?.ToString());
+            }
         }
     }
 

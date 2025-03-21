@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Newtonsoft.Json;
 
-namespace APITesting;
+namespace APITesting.TestCase;
 
 public class AmenityControllerTesting
 {
@@ -19,7 +19,7 @@ public class AmenityControllerTesting
     [SetUp]
     public void Setup()
     {
-        _mockRepo = new Mock<IRepository<Amenity>>(); 
+        _mockRepo = new Mock<IRepository<Amenity>>();
         _controller = new AmenityController(_mockRepo.Object);
     }
 
@@ -113,6 +113,4 @@ public class AmenityControllerTesting
         Assert.IsNotNull(result);
         Assert.AreEqual(400, result.StatusCode);
     }
-
-
 }

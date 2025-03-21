@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Moq;
 #pragma warning disable
-namespace APITesting;
+namespace APITesting.TestCase;
 
 public class AuthControllerTesting
 {
@@ -20,7 +20,7 @@ public class AuthControllerTesting
     private Mock<IEmailSender> _mockEmailSender;
     private Mock<IConfiguration> _mockConfiguration;
     private AuthController _controller;
-   
+
     [SetUp]
     public void Setup()
     {

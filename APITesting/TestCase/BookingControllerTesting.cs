@@ -17,7 +17,7 @@ using APITesting.DTO;
 using Microsoft.EntityFrameworkCore;
 #pragma warning disable
 
-namespace APITesting;
+namespace APITesting.TestCase;
 
 public class BookingControllerTesting
 {
@@ -451,7 +451,7 @@ public class BookingControllerTesting
             CheckOutDate = DateTime.Now.AddDays(2),
             TotalPrice = 200,
             Calendars = new List<BusinessObject.Entities.Calendar> { calendar },
-            User = user 
+            User = user
         };
 
 
@@ -1108,7 +1108,7 @@ public class BookingControllerTesting
     {
         var homeStayId = Guid.NewGuid();
 
-        var bookings = new List<Booking>(); 
+        var bookings = new List<Booking>();
 
         var mockBookingQueryable = bookings.AsQueryable().BuildMock();
 
@@ -1119,7 +1119,7 @@ public class BookingControllerTesting
 
         var result = await _controller.GetBookingByHomeStay(homeStayId);
 
-      
+
         Assert.IsInstanceOf<NotFoundResult>(result);
     }
 

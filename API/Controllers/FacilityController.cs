@@ -18,6 +18,7 @@ namespace API.Controllers
         {
             try
             {
+                if (request == null) return BadRequest();
                 var existingName = (await _facilityRepository.GetAllAsync()).Where(x => x.IsDeleted == false)
                                    .Select(x => x.Name)
                                    .ToList(); 
@@ -54,41 +55,65 @@ namespace API.Controllers
         [HttpPut("edit-facility")]
         public async Task<IActionResult> EditFacility([FromBody] UpdateFacilityDTO request)
         {
-            var getFacility = await _facilityRepository.Find(x => x.Id == request.FacilityID).FirstOrDefaultAsync();
-            
-            if(getFacility == null) return NotFound();
+            try
+            {
+                if (request.FacilityID == Guid.Empty || request == null) return BadRequest();
+                var getFacility = await _facilityRepository.Find(x => x.Id == request.FacilityID).FirstOrDefaultAsync();
 
-            getFacility.Name = request.Name ?? getFacility.Name;
-            getFacility.Description = request.Description ?? getFacility.Description;
-            getFacility.CreateAt = getFacility.CreateAt;
-            getFacility.UpdateAt = getFacility.UpdateAt;
-            await _facilityRepository.UpdateAsync(getFacility);
-            await _facilityRepository.SaveAsync();
-            return Ok(new {Message = "Update Facility Success"});
+                if (getFacility == null) return NotFound();
+
+                getFacility.Name = request.Name ?? getFacility.Name;
+                getFacility.Description = request.Description ?? getFacility.Description;
+                getFacility.CreateAt = getFacility.CreateAt;
+                getFacility.UpdateAt = getFacility.UpdateAt;
+                await _facilityRepository.UpdateAsync(getFacility);
+                await _facilityRepository.SaveAsync();
+                return Ok(new { Message = "Update Facility Success" });
+
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.ToString());
+            }
         }
 
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAll()
         {
-            var listFacility = await _facilityRepository.Find(x => x.IsDeleted != true).ToListAsync();
-            return Ok(listFacility);
+            try
+            {
+                var listFacility = await _facilityRepository.Find(x => x.IsDeleted != true).ToListAsync();
+                if(listFacility.Count == 0) return NotFound(new { Message = "Empty" });
+                return Ok(listFacility);
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.ToString());
+            }
         }
 
         [HttpDelete("delete-facility")]
         public async Task<IActionResult> DeleteFacility([FromBody] DeleteListDTO request)
         {
-            var delete = await _facilityRepository
-               .Find(h => request.ID.Contains(h.Id))
-               .ToListAsync();
+            try
+            {
+                if (request == null) return BadRequest();
+                var delete = await _facilityRepository
+                   .Find(h => request.ID.Contains(h.Id))
+                   .ToListAsync();
 
-            if (!delete.Any()) return NotFound();
+                if (!delete.Any()) return NotFound();
 
-            foreach (var facility in delete) { 
+                foreach (var facility in delete)
+                {
 
-               facility.IsDeleted = true;
+                    facility.IsDeleted = true;
+                }
+                await _facilityRepository.SaveAsync();
+                return Ok(new { Message = "Delete Facility Success" });
             }
-            await _facilityRepository.SaveAsync();
-            return Ok(new { Message = "Delete Facility Success" });
+            catch (Exception ex) {
+                return StatusCode(500, ex.ToString());
+            }
         }
 
     }
