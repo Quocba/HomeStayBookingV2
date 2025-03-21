@@ -74,8 +74,6 @@ namespace API.Controllers
             return Ok(new { Message = "Voucher updated successfully" });
         }
 
-
-
         [HttpPost("receive")]
         public async Task<IActionResult> ReceiveVoucher([FromBody] ReceiveVoucherRequest request)
         {
@@ -107,6 +105,7 @@ namespace API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpGet("list")]
         public async Task<IActionResult> GetVouchers([FromQuery] bool onlyValid = false)
         {
@@ -170,6 +169,8 @@ namespace API.Controllers
 
             return Ok(userVouchers);
         }
+
+
 
     }
 }

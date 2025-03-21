@@ -116,6 +116,8 @@ namespace API.Controllers
 
             return Ok(new { Message = "Post created successfully", PostID = newPost.Id });
         }
+
+
         [HttpPut("edit/{id}")]
         public async Task<IActionResult> EditPost(Guid id, [FromBody] EditPostDTO updatedPost)
         {
@@ -237,5 +239,7 @@ namespace API.Controllers
 
             return Ok(new { Message = "Comment deleted successfully" });
         }
+
+
     }
 }

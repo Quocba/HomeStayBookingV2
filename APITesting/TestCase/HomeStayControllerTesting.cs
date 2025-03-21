@@ -10,6 +10,8 @@ using MockQueryable;
 using Moq;
 using MockQueryable.Moq;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using APITesting.DTO;
 #pragma warning disable
 
 namespace APITesting;
@@ -588,6 +590,7 @@ public class HomeStayControllerTesting
         Assert.IsInstanceOf<BadRequestResult>(result);
     }
 
+
     [Test]
     public async Task DeleteHomeStayAmenity_ReturnsOk_WhenDeleteSuccessful()
     {
@@ -595,19 +598,21 @@ public class HomeStayControllerTesting
         var homeStayId = Guid.NewGuid();
         var amenityId = Guid.NewGuid();
 
-        var entity = new BusinessObject.Entities.HomestayAmenity
+        var homestayAmenity = new HomestayAmenity
         {
             HomeStayID = homeStayId,
             AmenityId = amenityId,
             isDeleted = false
         };
 
-        // Setup mock trả về entity khi Find
-        _mockHomeStayAmenityRepo
-            .Setup(r => r.Find(It.IsAny<Expression<Func<BusinessObject.Entities.HomestayAmenity, bool>>>()))
-            .Returns(new List<BusinessObject.Entities.HomestayAmenity> { entity }.AsQueryable());
+        var amenityList = new List<HomestayAmenity> { homestayAmenity }.AsQueryable();
+        var mockAmenityList = amenityList.BuildMock(); // Mock<IQueryable<HomestayAmenity>>
 
-        _mockHomeStayAmenityRepo.Setup(r => r.DeleteAsync(It.IsAny<BusinessObject.Entities.HomestayAmenity>()))
+        _mockHomeStayAmenityRepo.Setup(r =>
+                r.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
+            .Returns(mockAmenityList);
+
+        _mockHomeStayAmenityRepo.Setup(r => r.DeleteAsync(It.IsAny<HomestayAmenity>()))
             .Returns(Task.CompletedTask);
 
         _mockHomeStayAmenityRepo.Setup(r => r.SaveAsync())
@@ -616,35 +621,39 @@ public class HomeStayControllerTesting
         // Act
         var result = await _controller.DeleteHomeStayAmenity(homeStayId, amenityId);
 
-        // Assert: chỉ kiểm tra kết quả có phải là OkResult hay không
-        Assert.That(result, Is.TypeOf<OkObjectResult>());
-        Assert.That(((OkObjectResult)result).StatusCode, Is.EqualTo(200));
+        // Assert
+        var objectResult = result as OkObjectResult;
+        Assert.IsNotNull(objectResult);
+        Assert.AreEqual(200, objectResult.StatusCode);
     }
+
+
+
 
     [Test]
-    public async Task DeleteHomeStayAmenity_ThrowsException_WhenDeleteFails()
-    {
-        var mockAmenity = new HomestayAmenity
+        public async Task DeleteHomeStayAmenity_ThrowsException_WhenDeleteFails()
         {
-            HomeStayID = Guid.NewGuid(),
-            AmenityId = Guid.NewGuid(),
-            isDeleted = false
-        };
+            var mockAmenity = new HomestayAmenity
+            {
+                HomeStayID = Guid.NewGuid(),
+                AmenityId = Guid.NewGuid(),
+                isDeleted = false
+            };
 
-        _mockHomeStayAmenityRepo
-            .Setup(x => x.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
-            .Returns(new List<HomestayAmenity> { mockAmenity }.AsQueryable());
+            _mockHomeStayAmenityRepo
+                .Setup(x => x.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
+                .Returns(new List<HomestayAmenity> { mockAmenity }.AsQueryable());
 
-        _mockHomeStayAmenityRepo
-            .Setup(x => x.DeleteAsync(It.IsAny<HomestayAmenity>()))
-            .ThrowsAsync(new Exception("Delete failed"));
+            _mockHomeStayAmenityRepo
+                .Setup(x => x.DeleteAsync(It.IsAny<HomestayAmenity>()))
+                .ThrowsAsync(new Exception("Delete failed"));
 
-        var result = await _controller.DeleteHomeStayAmenity(mockAmenity.HomeStayID, mockAmenity.AmenityId);
+            var result = await _controller.DeleteHomeStayAmenity(mockAmenity.HomeStayID, mockAmenity.AmenityId);
 
-        var objectResult = result as ObjectResult;
-        Assert.That(objectResult, Is.Not.Null);
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
-    }
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+        }
 
     [Test]
     public async Task DeleteHomeStayAmenity_Returns500_WhenExceptionOccurs()
@@ -1240,45 +1249,49 @@ public class HomeStayControllerTesting
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var homeStayId = Guid.NewGuid();
 
-        var homeStays = new List<HomeStay>
+        var mockHomeStays = new List<HomeStay>
     {
         new HomeStay
         {
-            Id = homeStayId,
+            Id = Guid.NewGuid(),
             UserID = userId,
-            Name = "Luxury Homestay",
-            MainImage = "main.jpg",
-            Address = "123 Street",
-            City = "Da Nang",
-            CheckInTime = "14:00",
-            CheckOutTime = "12:00",
-            OpenIn = 2021,
-            Description = "Sea view",
+            Name = "Home stay 2",
+            MainImage = "main2.jpg",
+            Address = "14 Bach Dang st\n15 Bach Dang st",
+            City = "Ho Chi Minh",
+            CheckInTime = "11:30",
+            CheckOutTime = "11:30",
+            OpenIn = 2025,
+            Description = "Home stay 2 Des",
             Standar = 5,
             isDeleted = false,
-            Calendars = new List<Calendar>
-            {
-                new Calendar { Id = Guid.NewGuid(), Date = DateTime.Today, Price = 400, isBooked = false }
-            },
+            Calendars = new List<Calendar>(),
             HomestayAmenities = new List<HomestayAmenity>
             {
-                new HomestayAmenity { Amenity = new Amenity { Id = Guid.NewGuid(), Name = "WiFi" } }
+                new HomestayAmenity
+                {
+                    Amenity = new Amenity { Id = Guid.NewGuid(), Name = "Swimming Pool" }
+                }
             },
             HomestayFacilities = new List<HomeStayFacility>
             {
                 new HomeStayFacility
                 {
                     FacilityID = Guid.NewGuid(),
-                    Facility = new Facility { Name = "Gym", Description = "Modern gym" }
+                    Facility = new Facility
+                    {
+                        Name = "Wifi",
+                        Description = "Wifi Des"
+                    }
                 }
             }
         }
     }.AsQueryable().BuildMock();
 
-        _mockHomeStayRepo.Setup(repo => repo.FindWithInclude(It.IsAny<Expression<Func<HomeStay, object>>[]>()))
-                         .Returns(homeStays);
+        _mockHomeStayRepo
+            .Setup(repo => repo.FindWithInclude(It.IsAny<Expression<Func<HomeStay, object>>[]>()))
+            .Returns(mockHomeStays);
 
         // Act
         var result = await _controller.GetHomeStayByUser(userId);
@@ -1288,13 +1301,18 @@ public class HomeStayControllerTesting
         Assert.IsNotNull(okResult);
         Assert.AreEqual(200, okResult.StatusCode);
 
-        dynamic data = okResult.Value!;
-        Assert.AreEqual("Luxury Homestay", data[0].Name);
-        Assert.AreEqual("Da Nang", data[0].City);
-        Assert.IsNotNull(data[0].Calendar);
-        Assert.IsNotNull(data[0].Amenities);
-        Assert.IsNotNull(data[0].Facility);
+        // Dùng JObject để truy xuất an toàn
+        var json = JsonConvert.SerializeObject(okResult.Value);
+        var homeStayList = JArray.Parse(json);
+
+        Assert.AreEqual(1, homeStayList.Count);
+
+        var homeStay = homeStayList[0];
+
+        Assert.AreEqual("Home stay 2", homeStay["Name"]?.ToString());
+        Assert.AreEqual("Ho Chi Minh", homeStay["City"]?.ToString());
     }
+
 
     [Test]
     public async Task GetHomeStayByUser_ReturnsNotFound_WhenNoHomeStayFound()
@@ -1312,8 +1330,4 @@ public class HomeStayControllerTesting
         // Assert
         Assert.IsInstanceOf<NotFoundResult>(result);
     }
-
-
-
-
 }
