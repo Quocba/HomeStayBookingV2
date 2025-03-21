@@ -155,11 +155,15 @@ namespace API.Controllers
             });
         }
 
-            [HttpGet("confirm")]
+        [HttpGet("confirm")]
         public async Task<IActionResult> ConfirmBooking([FromQuery] Guid bookingId)
         {
             var booking = await _bookingRepository.GetByIdAsync(bookingId);
+            if (booking == null) return NotFound();
+
             var user = await _userRepository.GetByIdAsync(booking.UserID);
+            if (user == null) return NotFound();
+
             var homeStay = await _bookingRepository.FindWithInclude()
                                                    .Include(x => x.Calendars)
                                                    .ThenInclude(x => x.HomeStay)
@@ -174,6 +178,7 @@ namespace API.Controllers
 
             return Redirect(_configuration["Base:UrlClient"]!);
         }
+
         [HttpPost("cancel")]
         public async Task<IActionResult> CancelBooking([FromQuery] Guid bookingId)
         {
@@ -217,161 +222,189 @@ namespace API.Controllers
         [HttpGet("confirm-cancel")]
         public async Task<IActionResult> ConfirmCancelBooking([FromQuery] Guid bookingId)
         {
-            var booking = await _bookingRepository.GetByIdAsync(bookingId);
-            if (booking == null)
-                return NotFound(new { Message = "Booking not found" });
-
-            if (booking.Status == "Canceled")
-                return BadRequest(new { Message = "Booking is already canceled" });
-
-            booking.Status = "Canceled";
-
-            var calendars = await _calendarRepository.FindAsync(c => c.BookingID == bookingId);
-            foreach (var calendar in calendars)
+            try
             {
-                calendar.BookingID = null;
+                var booking = await _bookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                    return NotFound(new { Message = "Booking not found" });
+
+                if (booking.Status == "Canceled")
+                    return BadRequest(new { Message = "Booking is already canceled" });
+
+                booking.Status = "Canceled";
+
+                var calendars = await _calendarRepository.FindAsync(c => c.BookingID == bookingId);
+                foreach (var calendar in calendars)
+                {
+                    calendar.BookingID = null;
+                }
+
+                await _calendarRepository.SaveAsync();
+                await _bookingRepository.SaveAsync();
+
+                return Ok(new { Message = "Booking successfully canceled!" });
             }
-
-            await _calendarRepository.SaveAsync();
-            await _bookingRepository.SaveAsync();
-
-            return Ok(new { Message = "Booking successfully canceled!" });
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
 
         [HttpPut("confirm-booking-status")]
         public async Task<IActionResult> ConfirmBookingStatus([FromQuery] Guid bookingID)
         {
-            var getBooking = await _bookingRepository.GetByIdAsync(bookingID);
-            if (getBooking != null && getBooking.Status.Equals("Confirmed"))
+            try
             {
+                var getBooking = await _bookingRepository.GetByIdAsync(bookingID);
+                if (getBooking != null && getBooking.Status.Equals("Confirmed"))
+                {
 
-                getBooking.Status = "Paid";
-                await _bookingRepository.UpdateAsync(getBooking);
-                await _bookingRepository.SaveAsync();
-                return Ok(new { Message = "Update Booking Status Success" });
+                    getBooking.Status = "Paid";
+                    await _bookingRepository.UpdateAsync(getBooking);
+                    await _bookingRepository.SaveAsync();
+                    return Ok(new { Message = "Update Booking Status Success" });
+                }
+
+                return NotFound();
+
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.ToString());
             }
-
-            return NotFound();
         }
 
         [HttpGet("statistics-revenue-home-stay")]
         public async Task<IActionResult> HomeStayRevenueStatistics([FromQuery] Guid homeStayID, [FromQuery] int year)
         {
-            var calendars = await _calendarRepository
-                .FindWithInclude(c => c.Booking)
-                .Include(h => h.HomeStay)
-                .Where(c => c.HomeStayID == homeStayID && c.Booking != null)
-                .ToListAsync();
-
-            var bookingList = calendars
-                .Select(c => c.Booking)
-                .Where(b => b.CheckInDate.Year == year && b.Status == "Paid")
-                .Distinct()
-                .ToList();
-                
-            var totalWithMonth = new Dictionary<int, (decimal TotalRevenue, int BookingCount)>();
-
-            for (int i = 1; i <= 12; i++)
+            try
             {
-                totalWithMonth[i] = (0, 0);
-            }
+                var calendars = await _calendarRepository
+                    .FindWithInclude(c => c.Booking)
+                    .Include(h => h.HomeStay)
+                    .Where(c => c.HomeStayID == homeStayID && c.Booking != null)
+                    .ToListAsync();
 
-            foreach (var booking in bookingList)
-            {
-                var checkInMonth = booking.CheckInDate.Month;
-                var currentData = totalWithMonth[checkInMonth];
-                totalWithMonth[checkInMonth] = (currentData.TotalRevenue + booking.TotalPrice, currentData.BookingCount + 1);
-            }
+                var bookingList = calendars
+                    .Select(c => c.Booking)
+                    .Where(b => b.CheckInDate.Year == year && b.Status == "Paid")
+                    .Distinct()
+                    .ToList();
 
-            var monthNames = new[]
-            {
+                var totalWithMonth = new Dictionary<int, (decimal TotalRevenue, int BookingCount)>();
+
+                for (int i = 1; i <= 12; i++)
+                {
+                    totalWithMonth[i] = (0, 0);
+                }
+
+                foreach (var booking in bookingList)
+                {
+                    var checkInMonth = booking.CheckInDate.Month;
+                    var currentData = totalWithMonth[checkInMonth];
+                    totalWithMonth[checkInMonth] = (currentData.TotalRevenue + booking.TotalPrice, currentData.BookingCount + 1);
+                }
+
+                var monthNames = new[]
+                {
                 "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
              };
 
-            var result = totalWithMonth.Select(entry => new
-            {
-                Month = monthNames[entry.Key - 1],
-                Booking = entry.Value.BookingCount,
-                Revenue = entry.Value.TotalRevenue
-            }).ToList();
+                var result = totalWithMonth.Select(entry => new
+                {
+                    Month = monthNames[entry.Key - 1],
+                    Booking = entry.Value.BookingCount,
+                    Revenue = entry.Value.TotalRevenue
+                }).ToList();
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.ToString());
+            }
         }
 
 
         [HttpGet("export")]
         public async Task<IActionResult> ExportBookingByHomeStayID([FromQuery] Guid homeStayID)
         {
-            var calendars = await _calendarRepository
-                .FindWithInclude(c => c.Booking, c => c.HomeStay) 
-                .Where(c => c.HomeStayID == homeStayID && c.Booking != null)
-                .ToListAsync();
-
-            var bookings = calendars
-                .Select(c => new
-                {
-                    c.Booking.Id,
-                    c.Booking.CheckInDate,
-                    c.Booking.CheckOutDate,
-                    c.Booking.UnitPrice,
-                    c.Booking.TotalPrice,
-                    c.Booking.Status,
-                    c.Booking.ReasonCancel,
-                    HomeStayName = c.HomeStay.Name
-                })
-                .ToList();
-
-            if (!bookings.Any())
+            try
             {
-                return NotFound(new { Message = "No bookings found for this homestay." });
-            }
+                var calendars = await _calendarRepository
+     .FindWithInclude(c => c.Booking, c => c.HomeStay)
+     .Where(c => c.HomeStayID == homeStayID && c.Booking != null)
+     .ToListAsync();
 
-            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-            using var pck = new ExcelPackage();
-            var ws = pck.Workbook.Worksheets.Add("Booking List");
+                var bookings = calendars
+                    .Select(c => new
+                    {
+                        c.Booking.Id,
+                        c.Booking.CheckInDate,
+                        c.Booking.CheckOutDate,
+                        c.Booking.UnitPrice,
+                        c.Booking.TotalPrice,
+                        c.Booking.Status,
+                        c.Booking.ReasonCancel,
+                        HomeStayName = c.HomeStay.Name
+                    })
+                    .ToList();
 
-            // Header row
-            string[] headers = {
+                if (!bookings.Any())
+                {
+                    return NotFound(new { Message = "No bookings found for this homestay." });
+                }
+
+                ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+                using var pck = new ExcelPackage();
+                var ws = pck.Workbook.Worksheets.Add("Booking List");
+
+                // Header row
+                string[] headers = {
             "Booking ID", "Check-in Date", "Check-out Date", "Unit Price", "Total Price", "Status",
             "Cancellation Reason", "HomeStay Name"
         };
 
-            for (int i = 0; i < headers.Length; i++)
-            {
-                ws.Cells[1, i + 1].Value = headers[i];
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    ws.Cells[1, i + 1].Value = headers[i];
+                }
+
+                ws.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
+                ws.Cells[1, 1, 1, headers.Length].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                ws.Cells[1, 1, 1, headers.Length].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[1, 1, 1, headers.Length].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+                // Add data rows
+                int row = 2;
+                foreach (var booking in bookings)
+                {
+                    ws.Cells[row, 1].Value = booking.Id.ToString();
+                    ws.Cells[row, 2].Value = booking.CheckInDate.ToString("dd-MM-yyyy");
+                    ws.Cells[row, 3].Value = booking.CheckOutDate.ToString("dd-MM-yyyy");
+                    ws.Cells[row, 4].Value = $"{booking.UnitPrice} VND";
+                    ws.Cells[row, 5].Value = $"{booking.TotalPrice} VND";
+                    ws.Cells[row, 6].Value = booking.Status;
+                    ws.Cells[row, 7].Value = booking.ReasonCancel;
+                    ws.Cells[row, 8].Value = booking.HomeStayName;
+                    row++;
+                }
+
+                ws.Cells.AutoFitColumns();
+
+                // Save to memory stream
+                var stream = new MemoryStream();
+                pck.SaveAs(stream);
+                stream.Position = 0; // 🔹 Đảm bảo stream bắt đầu từ đầu
+
+                var fileName = $"BookingList_{homeStayID}.xlsx";
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
-
-            ws.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
-            ws.Cells[1, 1, 1, headers.Length].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            ws.Cells[1, 1, 1, headers.Length].Style.Fill.PatternType = ExcelFillStyle.Solid;
-            ws.Cells[1, 1, 1, headers.Length].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-
-            // Add data rows
-            int row = 2;
-            foreach (var booking in bookings)
+            catch(Exception Ex)
             {
-                ws.Cells[row, 1].Value = booking.Id.ToString();
-                ws.Cells[row, 2].Value = booking.CheckInDate.ToString("dd-MM-yyyy");
-                ws.Cells[row, 3].Value = booking.CheckOutDate.ToString("dd-MM-yyyy");
-                ws.Cells[row, 4].Value = $"{booking.UnitPrice} VND";
-                ws.Cells[row, 5].Value = $"{booking.TotalPrice} VND";
-                ws.Cells[row, 6].Value = booking.Status;
-                ws.Cells[row, 7].Value = booking.ReasonCancel;
-                ws.Cells[row, 8].Value = booking.HomeStayName;
-                row++;
+                return StatusCode(500, Ex.ToString());
             }
-
-            ws.Cells.AutoFitColumns();
-
-            // Save to memory stream
-            var stream = new MemoryStream();
-            pck.SaveAs(stream);
-            stream.Position = 0; // 🔹 Đảm bảo stream bắt đầu từ đầu
-
-            var fileName = $"BookingList_{homeStayID}.xlsx";
-            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+ 
         }
 
         [HttpGet("analyze-revenue-system-home-stay")]
@@ -396,35 +429,49 @@ namespace API.Controllers
         [HttpGet("get-booking-by-home-stay")]
         public async Task<IActionResult> GetBookingByHomeStay([FromQuery] Guid homeStayID)
         {
-            var listBooking = await _bookingRepository.FindWithInclude()
-                                                .Include(x => x.Calendars)
-                                                .ThenInclude(x => x.HomeStay)
-                                                .Include(u => u.User)
-                                                .Where(h => h.Calendars.Any(x => x.HomeStayID == homeStayID))
-                                                .ToListAsync();
-            var response = listBooking.Select(booking => new
+            try
             {
-                booking.Id,
-                booking.CheckInDate,
-                booking.CheckOutDate,
-                booking.TotalPrice,
-                booking.UnitPrice,
-                booking.Status,
-                booking.ReasonCancel,
-                booking.isDeleted,
-                User = new 
+                var listBooking = await _bookingRepository.FindWithInclude()
+                                              .Include(x => x.Calendars)
+                                              .ThenInclude(x => x.HomeStay)
+                                              .Include(u => u.User)
+                                              .Where(h => h.Calendars.Any(x => x.HomeStayID == homeStayID))
+                                              .ToListAsync();
+                if(listBooking.Count == 0)
                 {
-                    FullName = booking.User.FullName,
-                    Email = booking.User.Email,
-                    Phone = booking.User.Phone,
-                    Address = booking.User.Address,
-                    Avatar = booking.User.Avatar,
-                    Gender = booking.User.Gender,
-                    CitizenID = booking.User.CitizenID
+                    return NotFound();
                 }
-            }).ToList();
-            return Ok(response);
+                var response = listBooking.Select(booking => new
+                {
+                    booking.Id,
+                    booking.CheckInDate,
+                    booking.CheckOutDate,
+                    booking.TotalPrice,
+                    booking.UnitPrice,
+                    booking.Status,
+                    booking.ReasonCancel,
+                    booking.isDeleted,
+                    User = new
+                    {
+                        FullName = booking.User.FullName,
+                        Email = booking.User.Email,
+                        Phone = booking.User.Phone,
+                        Address = booking.User.Address,
+                        Avatar = booking.User.Avatar,
+                        Gender = booking.User.Gender,
+                        CitizenID = booking.User.CitizenID
+                    }
+                }).ToList();
+                return Ok(response);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.ToString());
+            }
+          
         }
+
+
 
 
         public static String SendMailBooking(HomeStay homeStay, Booking booking)
