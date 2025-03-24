@@ -25,7 +25,8 @@ namespace API.Controllers
                                    IEmailSender _emailSender,
                                    IPayOSService _payOSService,
                                    IConfiguration _configuration,
-                                   IRepository<Calendar> _calendarRepository) : ControllerBase
+                                   IRepository<Calendar> _calendarRepository,
+                                   IRepository<UserVoucher> _userVoucherRepository) : ControllerBase
     {
         [HttpGet("history")]
         public async Task<IActionResult> GetBookingHistory([FromHeader(Name = "X-User-Id")] Guid userId)
@@ -34,7 +35,12 @@ namespace API.Controllers
             if (user == null)
                 return NotFound(new { Message = "User not found" });
 
-            var bookings = await _bookingRepository.GetHistory(userId);
+            var bookings = await _bookingRepository
+                                 .FindWithInclude()
+                                 .Include(x => x.Calendars)
+                                 .ThenInclude(x => x.HomeStay)
+                                 .Where(x => x.UserID == userId)
+                                 .ToListAsync();
 
             if (!bookings.Any())
                 return Ok(new { Message = "No booking history found." });
@@ -44,9 +50,20 @@ namespace API.Controllers
                 BookingID = b.Id,
                 CheckInDate = b.CheckInDate.ToString("dd/MM/yyyy HH:mm"),
                 CheckOutDate = b.CheckOutDate.ToString("dd/MM/yyyy HH:mm"),
+                UnitPrice = b.UnitPrice,
                 TotalPrice = b.TotalPrice.ToString("C", new System.Globalization.CultureInfo("vi-VN")),
-                Status = b.Status
-            }).OrderByDescending(b => b.CheckInDate).ToList();
+                Status = b.Status,
+                ReasonCancel = b.ReasonCancel,
+                HomeStay = new
+                {
+                    Id = b.Calendars.FirstOrDefault(c => c.HomeStay != null)?.HomeStay.Id,
+                    Name = b.HomeStayName,
+                    Address = b.HomeStayAddress,
+                    MainImage = b.HomeStayImage
+                }
+            })
+            .OrderByDescending(b => b.CheckInDate)
+            .ToList();
 
             return Ok(bookingHistory);
         }
@@ -81,7 +98,7 @@ namespace API.Controllers
             var lastDate = sortedDates.Last();
             var replaceCheckInDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
             var replaceCheckOutDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
-
+            var getMyVoucher = "";
             DateTime checkInDate = firstDate.Date.Add(TimeSpan.Parse(replaceCheckInDate));
             DateTime checkOutDate = lastDate.AddDays(1).Date.Add(TimeSpan.Parse(replaceCheckOutDate));
 
@@ -95,14 +112,20 @@ namespace API.Controllers
                 var vouchers = await _voucherRepository.GetAllAsync();
                 var voucher = vouchers.FirstOrDefault(v =>
                     v.Code == bookingDTO.VoucherCode && DateUtility.GetCurrentDateTime() >= v.StartDate && DateUtility.GetCurrentDateTime() <= v.EndDate);
-
+                if(voucher.QuantityUsed < 0)
+                {
+                    return BadRequest("Quantity use of the voucher has expired");
+                }
                 if (voucher == null)
                     return BadRequest(new { Message = "Invalid or expired voucher" });
-
+                
                 decimal discountAmount = totalPrice * ((decimal)voucher.Discount / 100);
                 totalPrice -= discountAmount;
-            }
+                voucher.QuantityUsed -= 1;
+                await _voucherRepository.UpdateAsync(voucher);
 
+            }
+           
             var booking = new Booking
             {
                 Id = Guid.NewGuid(),
@@ -111,7 +134,10 @@ namespace API.Controllers
                 TotalPrice = totalPrice,
                 UnitPrice = totalPrice / (checkOutDate - checkInDate).Days,
                 Status = "Pending",
-                UserID = userId
+                UserID = userId,
+                HomeStayName = homeStay.Name,
+                HomeStayAddress = homeStay.Address,
+                HomeStayImage = homeStay.MainImage
             };
 
             foreach (var calendar in calendars)
@@ -125,6 +151,7 @@ namespace API.Controllers
             await _bookingRepository.AddAsync(booking);
             await _calendarRepository.SaveAsync();
             await _bookingRepository.SaveAsync();
+            await _voucherRepository.SaveAsync();
 
             if (!bookingDTO.IsOnline)
             {
@@ -180,9 +207,9 @@ namespace API.Controllers
         }
 
         [HttpPost("cancel")]
-        public async Task<IActionResult> CancelBooking([FromQuery] Guid bookingId)
+        public async Task<IActionResult> CancelBooking([FromBody]CancelBookingDTO reqeuest)
         {
-            var booking = await _bookingRepository.GetByIdAsync(bookingId);
+            var booking = await _bookingRepository.GetByIdAsync(reqeuest.BookingID);
             if (booking == null)
                 return NotFound(new { Message = "Booking not found" });
 
@@ -198,7 +225,9 @@ namespace API.Controllers
             var user = await _userRepository.GetByIdAsync(booking.UserID);
             if (user == null)
                 return NotFound(new { Message = "User not found" });
-
+            booking.ReasonCancel = reqeuest.ReasonCancel;
+            await _bookingRepository.UpdateAsync(booking);
+            await _bookingRepository.SaveAsync();
             string baseUrl = _configuration["Base:Url"] ?? string.Empty;
             string confirmCancelUrl = $"{baseUrl}/api/booking/confirm-cancel?bookingId={booking.Id}";
 
@@ -242,7 +271,7 @@ namespace API.Controllers
                 await _calendarRepository.SaveAsync();
                 await _bookingRepository.SaveAsync();
 
-                return Ok(new { Message = "Booking successfully canceled!" });
+                return Ok(new { Message = "Booking successfully canceled!", redirectUrl = _configuration["Base:UrlClient"] });
             }
             catch(Exception ex)
             {
@@ -261,6 +290,15 @@ namespace API.Controllers
                 {
 
                     getBooking.Status = "Paid";
+                    await _bookingRepository.UpdateAsync(getBooking);
+                    await _bookingRepository.SaveAsync();
+                    return Ok(new { Message = "Update Booking Status Success" });
+                }
+
+                if (getBooking != null && getBooking.Status.Equals("Paid"))
+                {
+
+                    getBooking.Status = "Completed";
                     await _bookingRepository.UpdateAsync(getBooking);
                     await _bookingRepository.SaveAsync();
                     return Ok(new { Message = "Update Booking Status Success" });

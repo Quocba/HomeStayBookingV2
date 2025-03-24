@@ -484,12 +484,15 @@ public class BookingControllerTesting
     public async Task CancelBooking_Success_ReturnsOk()
     {
         // Arrange
-        var bookingId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-
+        CancelBookingDTO cancel = new CancelBookingDTO
+        {
+            BookingID = Guid.NewGuid(),
+            ReasonCancel = "I Like"
+        };
         var booking = new Booking
         {
-            Id = bookingId,
+            Id = cancel.BookingID,
             UserID = userId,
             Status = "Pending",
             CheckInDate = DateTime.UtcNow.AddDays(2),
@@ -503,8 +506,9 @@ public class BookingControllerTesting
             Email = "test@example.com",
             FullName = "Nguyen Van A"
         };
-
-        _mockBookingRepo.Setup(x => x.GetByIdAsync(bookingId)).ReturnsAsync(booking);
+  
+        string reasonCancel = "I like";
+        _mockBookingRepo.Setup(x => x.GetByIdAsync(cancel.BookingID)).ReturnsAsync(booking);
         _mockUserRepo.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
         _mockConfiguration.Setup(x => x["Base:Url"]).Returns("https://client.example.com");
         _mockEmailSender.Setup(x => x.SendEmailAsync(
@@ -514,7 +518,7 @@ public class BookingControllerTesting
         )).Returns(Task.CompletedTask);
 
         // Act
-        var result = await _controller.CancelBooking(bookingId);
+        var result = await _controller.CancelBooking(cancel);
 
         // Assert
         Assert.IsInstanceOf<OkObjectResult>(result);
@@ -526,11 +530,16 @@ public class BookingControllerTesting
     [Test]
     public async Task CancelBooking_BookingNotFound_ReturnsNotFound()
     {
+        CancelBookingDTO cancel = new CancelBookingDTO
+        {
+            BookingID = Guid.NewGuid(),
+            ReasonCancel = "I Like"
+        };
         var bookingId = Guid.NewGuid();
 
         _mockBookingRepo.Setup(x => x.GetByIdAsync(bookingId)).ReturnsAsync((Booking?)null);
 
-        var result = await _controller.CancelBooking(bookingId);
+        var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<NotFoundObjectResult>(result);
         var notFound = result as NotFoundObjectResult;
@@ -540,6 +549,11 @@ public class BookingControllerTesting
     [Test]
     public async Task CancelBooking_PaidBooking_ReturnsBadRequest()
     {
+        CancelBookingDTO cancel = new CancelBookingDTO
+        {
+            BookingID = Guid.NewGuid(),
+            ReasonCancel = "I Like"
+        };
         var booking = new Booking
         {
             Id = Guid.NewGuid(),
@@ -549,7 +563,7 @@ public class BookingControllerTesting
 
         _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
 
-        var result = await _controller.CancelBooking(booking.Id);
+        var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<BadRequestObjectResult>(result);
         var badRequest = result as BadRequestObjectResult;
@@ -559,6 +573,11 @@ public class BookingControllerTesting
     [Test]
     public async Task CancelBooking_AlreadyCanceled_ReturnsBadRequest()
     {
+        CancelBookingDTO cancel = new CancelBookingDTO
+        {
+            BookingID = Guid.NewGuid(),
+            ReasonCancel = "I Like"
+        };
         var booking = new Booking
         {
             Id = Guid.NewGuid(),
@@ -568,7 +587,7 @@ public class BookingControllerTesting
 
         _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
 
-        var result = await _controller.CancelBooking(booking.Id);
+        var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<BadRequestObjectResult>(result);
         var badRequest = result as BadRequestObjectResult;
@@ -578,6 +597,11 @@ public class BookingControllerTesting
     [Test]
     public async Task CancelBooking_LessThanOneDayBeforeCheckIn_ReturnsBadRequest()
     {
+        CancelBookingDTO cancel = new CancelBookingDTO
+        {
+            BookingID = Guid.NewGuid(),
+            ReasonCancel = "I Like"
+        };
         var booking = new Booking
         {
             Id = Guid.NewGuid(),
@@ -587,7 +611,7 @@ public class BookingControllerTesting
 
         _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
 
-        var result = await _controller.CancelBooking(booking.Id);
+        var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<BadRequestObjectResult>(result);
         var badRequest = result as BadRequestObjectResult;
@@ -597,6 +621,11 @@ public class BookingControllerTesting
     [Test]
     public async Task CancelBooking_UserNotFound_ReturnsNotFound()
     {
+        CancelBookingDTO cancel = new CancelBookingDTO
+        {
+            BookingID = Guid.NewGuid(),
+            ReasonCancel = "I Like"
+        };
         var booking = new Booking
         {
             Id = Guid.NewGuid(),
@@ -608,7 +637,7 @@ public class BookingControllerTesting
         _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
         _mockUserRepo.Setup(x => x.GetByIdAsync(booking.UserID)).ReturnsAsync((User?)null);
 
-        var result = await _controller.CancelBooking(booking.Id);
+        var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<NotFoundObjectResult>(result);
         var notFound = result as NotFoundObjectResult;

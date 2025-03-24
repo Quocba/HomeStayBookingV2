@@ -627,9 +627,6 @@ public class HomeStayControllerTesting
         Assert.AreEqual(200, objectResult.StatusCode);
     }
 
-
-
-
     [Test]
         public async Task DeleteHomeStayAmenity_ThrowsException_WhenDeleteFails()
         {

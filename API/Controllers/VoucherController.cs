@@ -82,7 +82,7 @@ namespace API.Controllers
             {
                 var user = await _userRepository.Find(u => u.Id == request.UserID).FirstOrDefaultAsync();
                 var voucher = await _voucherRepository.Find(v => v.Id == request.VoucherID).FirstOrDefaultAsync();
-                var checkAlready = await _userVoucherRepository.Find(x => x.UserID == request.UserID && request.VoucherID == request.VoucherID)
+                var checkAlready = await _userVoucherRepository.Find(x => x.UserID == request.UserID && x.VoucherID == request.VoucherID)
                                                                     .FirstOrDefaultAsync();
                 if (checkAlready != null)
                 {
