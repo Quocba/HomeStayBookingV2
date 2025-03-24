@@ -29,6 +29,7 @@ public class BookingControllerTesting
     private Mock<IPayOSService> _mockPayOSService;
     private Mock<IConfiguration> _mockConfiguration;
     private Mock<IRepository<BusinessObject.Entities.Calendar>> _mockCalendarRepo;
+    private Mock<IRepository<UserVoucher>> _mockUerVoucherRepo;
     private BookingController _controller;
     [SetUp]
     public void Setup()
@@ -50,7 +51,8 @@ public class BookingControllerTesting
             _mockEmailSender.Object,
             _mockPayOSService.Object,
             _mockConfiguration.Object,
-            _mockCalendarRepo.Object
+            _mockCalendarRepo.Object,
+            _mockUerVoucherRepo.Object
         );
     }
 

@@ -40,6 +40,7 @@ namespace API.Controllers
                                  .Include(x => x.Calendars)
                                  .ThenInclude(x => x.HomeStay)
                                  .Where(x => x.UserID == userId)
+                                 .OrderByDescending(x => x.CheckInDate)
                                  .ToListAsync();
 
             if (!bookings.Any())
@@ -98,7 +99,7 @@ namespace API.Controllers
             var lastDate = sortedDates.Last();
             var replaceCheckInDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
             var replaceCheckOutDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
-            var getMyVoucher = "";
+
             DateTime checkInDate = firstDate.Date.Add(TimeSpan.Parse(replaceCheckInDate));
             DateTime checkOutDate = lastDate.AddDays(1).Date.Add(TimeSpan.Parse(replaceCheckOutDate));
 
@@ -118,7 +119,12 @@ namespace API.Controllers
                 }
                 if (voucher == null)
                     return BadRequest(new { Message = "Invalid or expired voucher" });
-                
+                var getMyVoucher = await _userVoucherRepository.GetByIdAsync(voucher.Id);
+                if (getMyVoucher != null) {
+                    getMyVoucher.isUsed = true;
+                   await _userVoucherRepository.UpdateAsync(getMyVoucher);
+                    
+                }
                 decimal discountAmount = totalPrice * ((decimal)voucher.Discount / 100);
                 totalPrice -= discountAmount;
                 voucher.QuantityUsed -= 1;
@@ -152,6 +158,7 @@ namespace API.Controllers
             await _calendarRepository.SaveAsync();
             await _bookingRepository.SaveAsync();
             await _voucherRepository.SaveAsync();
+            await _userVoucherRepository.SaveAsync();
 
             if (!bookingDTO.IsOnline)
             {

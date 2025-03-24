@@ -148,7 +148,7 @@ namespace API.Controllers
             }
 
             var userVouchers = await _userVoucherRepository
-                .Find(uv => uv.UserID == userId && !uv.isUsed && uv.voucher.EndDate >= DateTime.UtcNow && !uv.voucher.isDeleted)
+                .Find(uv => uv.UserID == userId && uv.voucher.EndDate >= DateTime.UtcNow && !uv.voucher.isDeleted)
                 .Include(uv => uv.voucher)
                 .Select(uv => new
                 {
@@ -158,7 +158,8 @@ namespace API.Controllers
                     Discount = uv.voucher.Discount,
                     StartDate = uv.voucher.StartDate,
                     EndDate = uv.voucher.EndDate,
-                    Image = uv.voucher.Image
+                    Image = uv.voucher.Image,
+                    isUser = uv.isUsed
                 })
                 .ToListAsync();
 
