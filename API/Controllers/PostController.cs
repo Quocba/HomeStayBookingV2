@@ -24,6 +24,8 @@ namespace API.Controllers
                     Location = p.Location,
                     PublishDate = p.PublishDate,
                     UserID = p.UserID,
+                    Status = p.Status,
+                    ReasonReject = p.ReasonReject,
                     Images = p.PostImages.Select(i => i.Image).ToList()
                 })
                 .ToListAsync();
@@ -241,6 +243,75 @@ namespace API.Controllers
 
             return Ok(new { Message = "Comment deleted successfully" });
         }
+
+        [HttpPut("approval-post")]
+        public async Task<IActionResult> ApprovalPost([FromForm]Guid postID)
+        {
+            try
+            {
+                var getPost = await _postRepository.GetByIdAsync(postID);
+                if (getPost == null)
+                {
+                    return NotFound();
+                }
+
+                getPost.Status = "Publish";
+                await _postRepository.UpdateAsync(getPost);
+                await _postRepository.SaveAsync();
+                return Ok("Publish post success");
+            }
+            catch (Exception ex) {
+                return StatusCode(500, $"Internal Server Error{ex.ToString()}");
+            }
+        }
+
+
+        [HttpPut("reject-post")]
+        public async Task<IActionResult> RejectPost([FromBody]RejectPostDTO request)
+        {
+            try
+            {
+                var getPost = await _postRepository.GetByIdAsync(request.PostID);
+                if (getPost == null)
+                {
+                    return NotFound();
+                }
+                getPost.Status = "Rejected";
+                getPost.ReasonReject = request.ReasonReject;
+                await _postRepository.UpdateAsync(getPost);
+                await _postRepository.SaveAsync();
+                return Ok("Reject Post Success");
+            }
+            catch (Exception ex) { 
+
+                return StatusCode(500, $"Internal Server Error{ex.ToString()}");
+            }
+        }
+
+
+        [HttpGet("get-post-by-user")]
+        public async Task<IActionResult> GetPostByUser([FromHeader(Name = "X-User-Id")] Guid userId)
+        {
+            var posts = await _postRepository.Find(p => !p.isDeleted)
+                                            .Select(p => new PostDTO
+                                            {
+                                                Id = p.Id,
+                                                Title = p.Title,
+                                                Description = p.Description,
+                                                Location = p.Location,
+                                                PublishDate = p.PublishDate,
+                                                UserID = p.UserID,
+                                                Status = p.Status,
+                                                ReasonReject = p.ReasonReject,
+                                                Images = p.PostImages.Select(i => i.Image).ToList()
+                                            }).Where(x => x.UserID == userId)
+                                            .ToListAsync();
+            if (!posts.Any())
+                return NotFound(new { Message = "No posts found" });
+
+            return Ok(posts);
+        }
+
 
 
     }

@@ -85,10 +85,8 @@ namespace API.Controllers
             await _bookingRepository.UpdateAsync(booking);
             await _bookingRepository.SaveAsync();
 
-            return Redirect(_payOSConfig.ClientRedirectUrl);
+            return Ok(new { success = true, redirectUrl = _payOSConfig.ReturnUrl });
         }
-
-
-
     }
 }
+    

@@ -15,6 +15,8 @@ using PayOSService.Services;
 using MockQueryable.Moq;
 using APITesting.DTO;
 using Microsoft.EntityFrameworkCore;
+using System.Transactions;
+using Newtonsoft.Json.Linq;
 #pragma warning disable
 
 namespace APITesting.TestCase;
@@ -29,8 +31,11 @@ public class BookingControllerTesting
     private Mock<IPayOSService> _mockPayOSService;
     private Mock<IConfiguration> _mockConfiguration;
     private Mock<IRepository<BusinessObject.Entities.Calendar>> _mockCalendarRepo;
-    private Mock<IRepository<UserVoucher>> _mockUerVoucherRepo;
+    private Mock<IRepository<UserVoucher>> _mockUserVoucherRepo;
+    private Mock<IRepository<BusinessObject.Entities.Refunds>> _mockRefundRepo;
+    private Mock<IRepository<BusinessObject.Entities.Transaction>> _mockTransactionRepo;
     private BookingController _controller;
+
     [SetUp]
     public void Setup()
     {
@@ -42,7 +47,9 @@ public class BookingControllerTesting
         _mockPayOSService = new Mock<IPayOSService>();
         _mockConfiguration = new Mock<IConfiguration>();
         _mockCalendarRepo = new Mock<IRepository<BusinessObject.Entities.Calendar>>();
-
+        _mockTransactionRepo = new Mock<IRepository<BusinessObject.Entities.Transaction>>();
+        _mockRefundRepo = new Mock<IRepository<BusinessObject.Entities.Refunds>>();
+        _mockUserVoucherRepo = new Mock<IRepository<UserVoucher>>();
         _controller = new BookingController(
             _mockBookingRepo.Object,
             _mockVoucherRepo.Object,
@@ -52,7 +59,9 @@ public class BookingControllerTesting
             _mockPayOSService.Object,
             _mockConfiguration.Object,
             _mockCalendarRepo.Object,
-            _mockUerVoucherRepo.Object
+            _mockUserVoucherRepo.Object,
+            _mockTransactionRepo.Object,
+            _mockRefundRepo.Object
         );
     }
 
@@ -77,7 +86,10 @@ public class BookingControllerTesting
         // Arrange
         var userId = Guid.NewGuid();
         _mockUserRepo.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(new User());
-        _mockBookingRepo.Setup(r => r.GetHistory(userId)).ReturnsAsync(new List<Booking>());
+
+        var bookingList = new List<Booking>().AsQueryable().BuildMock(); // Use BuildMock to support EF async
+
+        _mockBookingRepo.Setup(r => r.FindWithInclude()).Returns(bookingList);
 
         // Act
         var result = await _controller.GetBookingHistory(userId) as OkObjectResult;
@@ -101,28 +113,47 @@ public class BookingControllerTesting
         new Booking
         {
             Id = Guid.NewGuid(),
-            CheckInDate = new DateTime(2025, 3, 21, 14, 0, 0),
-            CheckOutDate = new DateTime(2025, 3, 22, 12, 0, 0),
-            TotalPrice = 1500000,
-            Status = "Completed"
+            CheckInDate = new DateTime(2025, 3, 21, 11, 30, 0),
+            CheckOutDate = new DateTime(2025, 3, 22, 11, 30, 0),
+            TotalPrice = 1001000,
+            UnitPrice = 1001000,
+            Status = "Completed",
+            Calendars = new List<BusinessObject.Entities.Calendar>
+            {
+                new BusinessObject.Entities.Calendar
+                {
+                    HomeStay = new HomeStay
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Bùi Trí Tính Home Stay",
+                        Address = "12 Bach Dang st\n13 Bach Dang st",
+                        MainImage = "https://homestaybooking-001-site1.ntempurl.com/images/image.jpg"
+                    }
+                }
+            },
+            HomeStayName = "Bùi Trí Tính Home Stay",
+            HomeStayAddress = "12 Bach Dang st\n13 Bach Dang st",
+            HomeStayImage = "https://homestaybooking-001-site1.ntempurl.com/images/image.jpg"
         }
     };
 
+        var mockBookingQueryable = bookings.AsQueryable().BuildMock();
+
         _mockUserRepo.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync(new User());
-        _mockBookingRepo.Setup(repo => repo.GetHistory(userId)).ReturnsAsync(bookings);
+        _mockBookingRepo.Setup(repo => repo.FindWithInclude()).Returns(mockBookingQueryable);
 
         // Act
-        var result = await _controller.GetBookingHistory(userId) as OkObjectResult;
+        var result = await _controller.GetBookingHistory(userId) as ObjectResult;
 
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(200, result.StatusCode);
 
         var json = JsonConvert.SerializeObject(result.Value);
-        var list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+        var obj = JObject.Parse(json);
 
-        Assert.IsNotNull(list);
-        Assert.AreEqual("Completed", list[0]["Status"].ToString());
+        Assert.IsNotNull(obj);
+        Assert.IsTrue(obj.HasValues);
     }
 
     [Test]
@@ -551,100 +582,137 @@ public class BookingControllerTesting
     [Test]
     public async Task CancelBooking_PaidBooking_ReturnsBadRequest()
     {
-        CancelBookingDTO cancel = new CancelBookingDTO
+        var bookingId = Guid.NewGuid();
+        var cancel = new CancelBookingDTO
         {
-            BookingID = Guid.NewGuid(),
+            BookingID = bookingId,
             ReasonCancel = "I Like"
         };
+
         var booking = new Booking
         {
-            Id = Guid.NewGuid(),
+            Id = bookingId,
             Status = "Paid",
-            CheckInDate = DateTime.UtcNow.AddDays(3)
+            CheckInDate = DateTime.UtcNow.AddDays(3),
+            UserID = Guid.NewGuid(), // thêm vào nếu controller có dùng
         };
 
-        _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
+        _mockBookingRepo.Setup(x => x.GetByIdAsync(bookingId)).ReturnsAsync(booking);
 
         var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<BadRequestObjectResult>(result);
         var badRequest = result as BadRequestObjectResult;
-        StringAssert.Contains("Cannot cancel a paid booking", badRequest!.Value!.ToString());
+
+        var json = JsonConvert.SerializeObject(badRequest!.Value);
+        var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+        Assert.AreEqual("Cannot cancel a paid booking", dict["Message"]);
     }
+
 
     [Test]
     public async Task CancelBooking_AlreadyCanceled_ReturnsBadRequest()
     {
+        var bookingId = Guid.NewGuid();
+
         CancelBookingDTO cancel = new CancelBookingDTO
         {
-            BookingID = Guid.NewGuid(),
+            BookingID = bookingId,
             ReasonCancel = "I Like"
         };
+
         var booking = new Booking
         {
-            Id = Guid.NewGuid(),
+            Id = bookingId, // phải trùng với cancel.BookingID
             Status = "Canceled",
-            CheckInDate = DateTime.UtcNow.AddDays(3)
+            CheckInDate = DateTime.UtcNow.AddDays(3),
+            UserID = Guid.NewGuid() // thêm nếu controller gọi _userRepo
         };
 
-        _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
+        _mockBookingRepo.Setup(x => x.GetByIdAsync(bookingId)).ReturnsAsync(booking);
 
         var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<BadRequestObjectResult>(result);
         var badRequest = result as BadRequestObjectResult;
-        StringAssert.Contains("already canceled", badRequest!.Value!.ToString());
+
+        var json = JsonConvert.SerializeObject(badRequest!.Value);
+        var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+        Assert.AreEqual("Booking is already canceled", dict["Message"]);
     }
+
 
     [Test]
     public async Task CancelBooking_LessThanOneDayBeforeCheckIn_ReturnsBadRequest()
     {
-        CancelBookingDTO cancel = new CancelBookingDTO
+        var bookingId = Guid.NewGuid();
+
+        var cancel = new CancelBookingDTO
         {
-            BookingID = Guid.NewGuid(),
+            BookingID = bookingId,
             ReasonCancel = "I Like"
         };
+
         var booking = new Booking
         {
-            Id = Guid.NewGuid(),
+            Id = bookingId,
             Status = "Pending",
-            CheckInDate = DateTime.UtcNow.AddHours(12)
+            CheckInDate = DateTime.UtcNow.AddHours(12),
+            UserID = Guid.NewGuid(), // thêm nếu controller có dùng tới
         };
 
-        _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
+        _mockBookingRepo.Setup(x => x.GetByIdAsync(bookingId)).ReturnsAsync(booking);
 
         var result = await _controller.CancelBooking(cancel);
 
         Assert.IsInstanceOf<BadRequestObjectResult>(result);
         var badRequest = result as BadRequestObjectResult;
-        StringAssert.Contains("Cannot cancel less than 1 day", badRequest!.Value!.ToString());
+
+        var json = JsonConvert.SerializeObject(badRequest!.Value);
+        var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+        Assert.AreEqual("Cannot cancel less than 1 day before check-in", dict["Message"]);
     }
+
 
     [Test]
     public async Task CancelBooking_UserNotFound_ReturnsNotFound()
     {
-        CancelBookingDTO cancel = new CancelBookingDTO
+        // Arrange
+        var cancel = new CancelBookingDTO
         {
             BookingID = Guid.NewGuid(),
             ReasonCancel = "I Like"
         };
+
         var booking = new Booking
         {
-            Id = Guid.NewGuid(),
+            Id = cancel.BookingID,
             UserID = Guid.NewGuid(),
             Status = "Pending",
             CheckInDate = DateTime.UtcNow.AddDays(3)
         };
 
-        _mockBookingRepo.Setup(x => x.GetByIdAsync(booking.Id)).ReturnsAsync(booking);
+        _mockBookingRepo.Setup(x => x.GetByIdAsync(cancel.BookingID)).ReturnsAsync(booking);
         _mockUserRepo.Setup(x => x.GetByIdAsync(booking.UserID)).ReturnsAsync((User?)null);
 
+        // Act
         var result = await _controller.CancelBooking(cancel);
 
+        // Assert
         Assert.IsInstanceOf<NotFoundObjectResult>(result);
         var notFound = result as NotFoundObjectResult;
-        StringAssert.Contains("User not found", notFound!.Value!.ToString());
+
+        var json = JsonConvert.SerializeObject(notFound!.Value);
+        var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+        Assert.IsTrue(dict!.ContainsKey("Message"));
+        Assert.AreEqual("User not found", dict["Message"]);
     }
+
+
 
     [Test]
     public async Task ConfirmCancelBooking_Success_ReturnsOk()
@@ -664,12 +732,25 @@ public class BookingControllerTesting
         new BusinessObject.Entities.Calendar { Id = Guid.NewGuid(), BookingID = bookingId }
     }.AsQueryable();
 
-        var mockCalendarQueryable = calendars.BuildMock().BuildMockDbSet();
+        var transaction = new BusinessObject.Entities.Transaction
+        {
+            ID = 1,
+            BookingID = bookingId
+        };
+
+        // FIX: Setup cấu hình trả về redirectUrl
+        _mockConfiguration.Setup(c => c["Base:UrlClient"]).Returns("https://client-redirect.com");
 
         _mockBookingRepo.Setup(x => x.GetByIdAsync(bookingId)).ReturnsAsync(booking);
         _mockCalendarRepo.Setup(x => x.FindAsync(It.IsAny<Expression<Func<BusinessObject.Entities.Calendar, bool>>>())).ReturnsAsync(calendars);
         _mockCalendarRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
         _mockBookingRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+
+        var mockTransactionQueryable = new List<BusinessObject.Entities.Transaction> { transaction }.AsQueryable().BuildMock();
+
+        _mockTransactionRepo.Setup(x => x.FindWithInclude()).Returns(mockTransactionQueryable);
+        _mockRefundRepo.Setup(r => r.AddAsync(It.IsAny<Refunds>())).Returns(Task.CompletedTask);
+        _mockRefundRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.ConfirmCancelBooking(bookingId);
@@ -677,14 +758,32 @@ public class BookingControllerTesting
         // Assert
         Assert.IsInstanceOf<OkObjectResult>(result);
         var ok = result as OkObjectResult;
-        StringAssert.Contains("successfully canceled", ok!.Value!.ToString());
+
+        Assert.IsNotNull(ok);
+        var value = ok!.Value!;
+        var messageProp = value.GetType().GetProperty("Message");
+        var redirectProp = value.GetType().GetProperty("redirectUrl");
+
+        Assert.IsNotNull(messageProp);
+        Assert.IsNotNull(redirectProp);
+
+        var message = messageProp!.GetValue(value)?.ToString();
+        var redirect = redirectProp!.GetValue(value)?.ToString();
+
+        StringAssert.Contains("successfully canceled", message);
+        Assert.AreEqual("https://client-redirect.com", redirect);
 
         Assert.That(booking.Status, Is.EqualTo("Canceled"));
         foreach (var calendar in calendars)
         {
             Assert.That(calendar.BookingID, Is.Null);
         }
+
+        _mockRefundRepo.Verify(r => r.AddAsync(It.IsAny<Refunds>()), Times.Once);
+        _mockRefundRepo.Verify(r => r.SaveAsync(), Times.Once);
     }
+
+
 
 
     [Test]

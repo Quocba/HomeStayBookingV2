@@ -15,6 +15,8 @@ namespace BusinessObject.DTO
         public DateTime PublishDate { get; set; }
         public Guid UserID { get; set; }
         public List<string> Images { get; set; }
+        public string Status { get; set; }
+        public string ReasonReject {  get; set; }
         public List<CommentDTO> Comments { get; set; }
     }
 

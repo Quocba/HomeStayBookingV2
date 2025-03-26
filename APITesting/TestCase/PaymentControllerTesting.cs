@@ -133,7 +133,7 @@ public class PaymentControllerTesting
     }
 
     [Test]
-    public async Task PaymentReturn_WithSuccessCodeAndStatus_UpdatesBookingAndRedirects()
+    public async Task PaymentReturn_WithSuccessCodeAndStatus_UpdatesBookingAndReturnsOkResult()
     {
         // Arrange
         var orderId = 999L;
@@ -170,10 +170,11 @@ public class PaymentControllerTesting
         var expectedRedirectUrl = "https://client-redirect.com";
         var config = new PayOSConfig
         {
-            ClientRedirectUrl = expectedRedirectUrl
+            ReturnUrl = expectedRedirectUrl
         };
 
         _payosConfigOptions = Options.Create(config);
+
         _controller = new PaymentController(
             _mockBookingRepo.Object,
             _mockTransactionRepo.Object,
@@ -191,21 +192,35 @@ public class PaymentControllerTesting
         );
 
         // Assert
-        Assert.IsInstanceOf<RedirectResult>(result);
-        var redirectResult = result as RedirectResult;
-        Assert.NotNull(redirectResult);
-        Assert.AreEqual(expectedRedirectUrl, redirectResult.Url);
+        Assert.IsInstanceOf<OkObjectResult>(result);
+        var okResult = result as OkObjectResult;
+        Assert.NotNull(okResult);
 
-        // Kiểm tra booking được cập nhật đúng
+        var value = okResult!.Value!;
+        var valueType = value.GetType();
+
+        var successProp = valueType.GetProperty("success");
+        var redirectProp = valueType.GetProperty("redirectUrl");
+
+        Assert.IsNotNull(successProp);
+        Assert.IsNotNull(redirectProp);
+
+        var success = (bool?)successProp!.GetValue(value);
+        var redirectUrl = redirectProp!.GetValue(value)?.ToString();
+
+        Assert.IsTrue(success);
+        Assert.AreEqual(expectedRedirectUrl, redirectUrl);
+
         Assert.AreEqual("Paid", booking.Status);
         _mockBookingRepo.Verify(r => r.UpdateAsync(booking), Times.Once);
         _mockBookingRepo.Verify(r => r.SaveAsync(), Times.Once);
     }
 
+
+
     [Test]
     public async Task PaymentReturn_WithFailedCodeOrStatus_DoesNotUpdateBooking_StillRedirects()
     {
-        // Arrange
         var orderId = 1001L;
         var bookingId = Guid.NewGuid();
 
@@ -240,7 +255,7 @@ public class PaymentControllerTesting
         var expectedRedirectUrl = "https://client-redirect.com";
         var config = new PayOSConfig
         {
-            ClientRedirectUrl = expectedRedirectUrl
+            ReturnUrl = expectedRedirectUrl // sửa đúng property controller dùng
         };
 
         _payosConfigOptions = Options.Create(config);
@@ -251,28 +266,39 @@ public class PaymentControllerTesting
             _payosConfigOptions
         );
 
-        // Act
         var result = await _controller.PaymentReturn(
-            code: "99",                  // code khác "00"
+            code: "99",
             id: "abc123",
             cancel: "true",
-            status: "FAILED",            // status khác "PAID"
+            status: "FAILED",
             orderCode: orderId.ToString()
         );
 
-        // Assert
-        Assert.IsInstanceOf<RedirectResult>(result);
-        var redirectResult = result as RedirectResult;
-        Assert.NotNull(redirectResult);
-        Assert.AreEqual(expectedRedirectUrl, redirectResult.Url);
+        Assert.IsInstanceOf<OkObjectResult>(result);
+        var okResult = result as OkObjectResult;
+        Assert.NotNull(okResult);
 
-        // Status không bị đổi thành "Paid"
+        var value = okResult!.Value!;
+        var valueType = value.GetType();
+
+        var successProp = valueType.GetProperty("success");
+        var redirectProp = valueType.GetProperty("redirectUrl");
+
+        Assert.IsNotNull(successProp);
+        Assert.IsNotNull(redirectProp);
+
+        var success = (bool?)successProp!.GetValue(value);
+        var redirectUrl = redirectProp!.GetValue(value)?.ToString();
+
+        Assert.IsTrue(success);
+        Assert.AreEqual(expectedRedirectUrl, redirectUrl);
         Assert.AreNotEqual("Paid", booking.Status);
 
-        // Vẫn gọi Update & Save để lưu trạng thái hiện tại
         _mockBookingRepo.Verify(r => r.UpdateAsync(booking), Times.Once);
         _mockBookingRepo.Verify(r => r.SaveAsync(), Times.Once);
     }
+
+
 
 
 

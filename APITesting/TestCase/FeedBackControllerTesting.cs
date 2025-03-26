@@ -2,6 +2,7 @@
 using BusinessObject.DTO;
 using BusinessObject.Entities;
 using BusinessObject.Interfaces;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 #pragma warning disable
@@ -13,13 +14,14 @@ public class FeedBackControllerTesting
     private Mock<IRepository<FeedBack>> _mockFeedbackRepo;
     private Mock<IRepository<HomeStay>> _mockHomestayRepo;
     private FeedbackController _controller;
-
+    private Mock<IEmailSender> _mockEmailSender;
     [SetUp]
     public void Setup()
     {
         _mockFeedbackRepo = new Mock<IRepository<FeedBack>>();
         _mockHomestayRepo = new Mock<IRepository<HomeStay>>();
-        _controller = new FeedbackController(_mockFeedbackRepo.Object, _mockHomestayRepo.Object);
+        _mockEmailSender = new Mock<IEmailSender>();
+        _controller = new FeedbackController(_mockFeedbackRepo.Object, _mockHomestayRepo.Object, _mockEmailSender.Object);
     }
 
 

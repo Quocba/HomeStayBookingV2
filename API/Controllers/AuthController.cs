@@ -83,6 +83,10 @@ namespace API.Controllers
 
             if (!user.IsEmailConfirmed) throw new InvalidCredentialsException("Please confirm email");
 
+            if (user.IsDeleted == true)
+            {
+                return Forbid("Account has been blocked");
+            }
             var accessToken = _tokenService.GenerateJwtToken(user);
             var refreshToken = _tokenService.GenerateRefreshToken(64);
 
@@ -208,7 +212,7 @@ namespace API.Controllers
         }
 
         [HttpPut("block")]
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> Block([FromQuery] Guid id)
         {
             if (id == Guid.Empty) 
@@ -222,7 +226,7 @@ namespace API.Controllers
         }
 
         [HttpPut("unblock")]
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> UnBlock([FromQuery] Guid id)
         {
             await _userRepository.ChangeIsDeletedUser(id, false);

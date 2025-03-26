@@ -26,7 +26,9 @@ namespace API.Controllers
                                    IPayOSService _payOSService,
                                    IConfiguration _configuration,
                                    IRepository<Calendar> _calendarRepository,
-                                   IRepository<UserVoucher> _userVoucherRepository) : ControllerBase
+                                   IRepository<UserVoucher> _userVoucherRepository,
+                                   IRepository<Transaction> _transactionRepository,
+                                   IRepository<Refunds> _refundsRepository) : ControllerBase
     {
         [HttpGet("history")]
         public async Task<IActionResult> GetBookingHistory([FromHeader(Name = "X-User-Id")] Guid userId)
@@ -113,13 +115,14 @@ namespace API.Controllers
                 var vouchers = await _voucherRepository.GetAllAsync();
                 var voucher = vouchers.FirstOrDefault(v =>
                     v.Code == bookingDTO.VoucherCode && DateUtility.GetCurrentDateTime() >= v.StartDate && DateUtility.GetCurrentDateTime() <= v.EndDate);
-                if(voucher.QuantityUsed < 0)
+                if( voucher != null &&voucher.QuantityUsed < 0)
                 {
                     return BadRequest("Quantity use of the voucher has expired");
                 }
                 if (voucher == null)
                     return BadRequest(new { Message = "Invalid or expired voucher" });
-                var getMyVoucher = await _userVoucherRepository.GetByIdAsync(voucher.Id);
+
+                var getMyVoucher = await _userVoucherRepository.FindWithInclude().FirstOrDefaultAsync(x => x.UserID == userId && x.VoucherID == voucher.Id);
                 if (getMyVoucher != null) {
                     getMyVoucher.isUsed = true;
                    await _userVoucherRepository.UpdateAsync(getMyVoucher);
@@ -233,6 +236,7 @@ namespace API.Controllers
             if (user == null)
                 return NotFound(new { Message = "User not found" });
             booking.ReasonCancel = reqeuest.ReasonCancel;
+
             await _bookingRepository.UpdateAsync(booking);
             await _bookingRepository.SaveAsync();
             string baseUrl = _configuration["Base:Url"] ?? string.Empty;
@@ -275,6 +279,16 @@ namespace API.Controllers
                     calendar.BookingID = null;
                 }
 
+                var getTransaction = await _transactionRepository.FindWithInclude().FirstOrDefaultAsync(x => x.BookingID == booking.Id);
+                var addRefuns = new Refunds
+                {
+                    RefundID = IdUtility.GetNewID(),
+                    TransactionID = getTransaction.ID,
+                    Status = false,
+                    Transaction = getTransaction
+                };
+                await _refundsRepository.AddAsync(addRefuns);
+                await _refundsRepository.SaveAsync();
                 await _calendarRepository.SaveAsync();
                 await _bookingRepository.SaveAsync();
 
@@ -465,7 +479,7 @@ namespace API.Controllers
                     HomeStayName = g.Key.Name,
                     Address = g.Key.Address,
                     TotalRevenue = g.Sum(x => x.b.TotalPrice)
-                })
+                }).OrderByDescending(x => x.TotalRevenue)
                 .ToList();
 
             return Ok(revenueList);

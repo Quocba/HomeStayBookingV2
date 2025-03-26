@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using PayOSService.Config;
 using PayOSService.DTO;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace PayOSService.Services
 {
-    public class PayOSService(IOptions<PayOSConfig> payosConfigOptions) : IPayOSService
+    public class PayOSService(IOptions<PayOSConfig> payosConfigOptions, HttpClient _client) : IPayOSService
     {
         private readonly PayOSConfig _payOSConfig = payosConfigOptions.Value;
 
