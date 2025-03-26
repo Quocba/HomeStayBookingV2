@@ -2,6 +2,7 @@
 using BusinessObject.Entities;
 using BusinessObject.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace API.Controllers
@@ -73,7 +74,7 @@ namespace API.Controllers
         [HttpGet("get-all-system-amenity")]
         public async Task<IActionResult> GetAllSystemAmenity()
         {
-            var amenityList = await _amenityRepository.GetAllAsync();
+            var amenityList = await _amenityRepository.FindWithInclude().Distinct().ToListAsync();
             return Ok(amenityList);
         }
     }
