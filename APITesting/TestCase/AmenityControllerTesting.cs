@@ -8,6 +8,7 @@ using BusinessObject.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Newtonsoft.Json;
+using MockQueryable;
 
 namespace APITesting.TestCase;
 
@@ -27,7 +28,21 @@ public class AmenityControllerTesting
     [Test]
     public async Task GetAllAmentitySuccess()
     {
+        // Arrange
+        var fakeAmenities = new List<Amenity>
+    {
+        new Amenity { Id = Guid.NewGuid(), Name = "WiFi" },
+        new Amenity { Id = Guid.NewGuid(), Name = "Air Conditioner" }
+    }.AsQueryable();
+
+        var mockAmenityQueryable = fakeAmenities.BuildMock(); // tạo IQueryable mock hỗ trợ async
+
+        _mockRepo.Setup(x => x.FindWithInclude()).Returns(mockAmenityQueryable);
+
+        // Act
         var result = await _controller.GetAllSystemAmenity();
+
+        // Assert
         Assert.IsNotNull(result);
     }
 
