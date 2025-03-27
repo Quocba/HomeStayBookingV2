@@ -22,9 +22,8 @@ namespace BusinessObject.DTO
         [StringLength(10)]
         public string Phone { get; set; }
 
-        [Required]
         [StringLength(250)]
-        public string Address { get; set; }
+        public string? Address { get; set; }
 
         [Required]
         [MaxLength(50)]

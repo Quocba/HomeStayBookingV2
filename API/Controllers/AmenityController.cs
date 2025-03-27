@@ -74,7 +74,11 @@ namespace API.Controllers
         [HttpGet("get-all-system-amenity")]
         public async Task<IActionResult> GetAllSystemAmenity()
         {
-            var amenityList = await _amenityRepository.FindWithInclude().Distinct().ToListAsync();
+            var amenityList = await _amenityRepository
+                                  .FindWithInclude()
+                                  .GroupBy(x => x.Name.ToLower())
+                                  .Select(g => g.First())
+                                  .ToListAsync();
             return Ok(amenityList);
         }
     }

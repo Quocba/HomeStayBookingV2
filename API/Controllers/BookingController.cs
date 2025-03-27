@@ -292,7 +292,7 @@ namespace API.Controllers
                 await _calendarRepository.SaveAsync();
                 await _bookingRepository.SaveAsync();
 
-                return Ok(new { Message = "Booking successfully canceled!", redirectUrl = _configuration["Base:UrlClient"] });
+                return Redirect("http://localhost:3000");
             }
             catch(Exception ex)
             {
@@ -346,7 +346,7 @@ namespace API.Controllers
 
                 var bookingList = calendars
                     .Select(c => c.Booking)
-                    .Where(b => b.CheckInDate.Year == year && b.Status == "Paid")
+                    .Where(b => b.CheckInDate.Year == year && b.Status == "Paid" || b.Status == "Completed")
                     .Distinct()
                     .ToList();
 

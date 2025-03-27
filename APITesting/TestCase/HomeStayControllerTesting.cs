@@ -820,7 +820,7 @@ public class HomeStayControllerTesting
                     User = new User { FullName = "John Doe", Avatar = "avatar.jpg", Email = "john@example.com" },
                     Rating = 5,
                     Description = "Great!",
-                    isDeleted = false
+                    IsReply = false
                 }
             }
         }

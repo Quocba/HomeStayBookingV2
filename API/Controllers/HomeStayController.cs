@@ -117,6 +117,12 @@ namespace API.Controllers
             try
             {
                 if (request == null) return BadRequest();
+                var getHomeStay = _homeStayRepository.FindWithInclude()
+                                                     .FirstOrDefaultAsync(x => x.Name.Equals(request.Name) && x.UserID == userID);
+                if(getHomeStay != null)
+                {
+                    return Conflict("Home Stay Name Already Exist");
+                }
                 Guid homeStayID = Guid.NewGuid();
                 HomeStay createHomeStay = new HomeStay
                 {
@@ -204,11 +210,20 @@ namespace API.Controllers
             {
                 if (request == null) return BadRequest();
 
+
                 var getHomeStay = await _homeStayRepository.GetByIdAsync(request.HomeStayID);
 
                 if (getHomeStay == null)
                 {
                     return NotFound();
+                }
+
+                var checkAlreadyName = _homeStayRepository.FindWithInclude()
+                                     .FirstOrDefaultAsync(x => x.Name.Equals(request.Name) && x.UserID == getHomeStay.UserID);
+
+                if (checkAlreadyName != null)
+                {
+                    return Conflict(new {Message = "Home Stay Name Already Exist"});
                 }
                 getHomeStay.Name = request.Name ?? getHomeStay.Name;
                 getHomeStay.MainImage = request.MainImage ?? getHomeStay.MainImage;
@@ -424,7 +439,7 @@ namespace API.Controllers
                     fb.User.Email,
                     fb.Rating,
                     fb.Description,
-                    fb.isDeleted
+                    fb.IsReply
                 }).ToList()
             };
             return Ok(response);
@@ -543,7 +558,7 @@ namespace API.Controllers
                                     .Include(f => f.HomestayFacilities!)
                                     .ThenInclude(hf => hf.Facility)
                                     .Include(f => f.FeedBacks)
-                                    .Where(x => x.City.Equals(city)).ToListAsync();
+                                    .Where(x => x.City.Equals(city) && x.isDeleted == false).ToListAsync();
             var response = getHomeStay.Select(h => new
             {
                 h.Id,
@@ -649,10 +664,10 @@ namespace API.Controllers
                     .ThenInclude(ha => ha.Amenity)
                 .Include(h => h.HomestayFacilities!)
                     .ThenInclude(fa => fa.Facility)
-                .Where(h => h.Calendars.All(c =>
-                    c.Booking == null ||
-                    c.Booking.CheckOutDate < request.CheckInDate ||
-                    c.Booking.CheckInDate > request.CheckOutDate 
+                .Where(h => h.Calendars.Any(c =>
+                    c.isBooked == false &&
+                    c.Date >= request.CheckInDate &&
+                    c.Date <= request.CheckOutDate
                 ))
                 .ToListAsync();
 
@@ -690,7 +705,7 @@ namespace API.Controllers
                     hf.Facility.Name,
                     hf.Facility.Description
                 }).ToList()
-            }).ToList();
+            }).Where(x => x.isDeleted == false).ToList();
 
             return Ok(response);
 

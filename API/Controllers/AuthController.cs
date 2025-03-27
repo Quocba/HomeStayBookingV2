@@ -37,7 +37,7 @@ namespace API.Controllers
         {
             if (command == null || string.IsNullOrWhiteSpace(command.FullName) ||
                 string.IsNullOrWhiteSpace(command.Email) || string.IsNullOrWhiteSpace(command.Phone) ||
-                string.IsNullOrWhiteSpace(command.Address) || string.IsNullOrWhiteSpace(command.Password) ||
+                string.IsNullOrWhiteSpace(command.Password) ||
                 command.RoleId == 0)
             {
                 return BadRequest(new { message = "Invalid request data" });
@@ -212,7 +212,7 @@ namespace API.Controllers
         }
 
         [HttpPut("block")]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> Block([FromQuery] Guid id)
         {
             if (id == Guid.Empty) 
@@ -226,7 +226,7 @@ namespace API.Controllers
         }
 
         [HttpPut("unblock")]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> UnBlock([FromQuery] Guid id)
         {
             await _userRepository.ChangeIsDeletedUser(id, false);

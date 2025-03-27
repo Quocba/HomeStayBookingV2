@@ -78,7 +78,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IPayOSService, PayOSService.Services.PayOSService>();
-
+builder.Services.AddScoped<TTLockService>();
 builder.Services.Configure<PayOSConfig>(
     builder.Configuration.GetSection(PayOSConfig.ConfigName));
 

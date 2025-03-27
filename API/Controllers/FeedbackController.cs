@@ -38,7 +38,7 @@ namespace API.Controllers
                     HomeStay = await _homeStayRepository.GetByIdAsync(feedbackDto.HomestayID),
                     Rating = feedbackDto.Rating,
                     Description = feedbackDto.Description,
-                    isDeleted = false
+                    IsReply = false
                 };
 
                 await _feedbackRepository.AddAsync(feedback);
@@ -62,7 +62,7 @@ namespace API.Controllers
                 if (userId == Guid.Empty || feedbackDto == null) return BadRequest();
 
                 var feedback = await _feedbackRepository.GetByIdAsync(id);
-                if (feedback == null || feedback.isDeleted)
+                if (feedback == null || feedback.IsReply)
                 {
                     return NotFound("Feedback not found.");
                 }
@@ -100,7 +100,7 @@ namespace API.Controllers
             {
                 if (userId == Guid.Empty) return NotFound();
                 var feedback = await _feedbackRepository.GetByIdAsync(id);
-                if (feedback == null || feedback.isDeleted)
+                if (feedback == null || feedback.IsReply)
                 {
                     return NotFound(new
                     {
@@ -113,7 +113,7 @@ namespace API.Controllers
                     return Forbid();
                 }
 
-                feedback.isDeleted = true;
+                feedback.IsReply = true;
 
                 await _feedbackRepository.UpdateAsync(feedback);
                 await _feedbackRepository.SaveAsync();
@@ -133,7 +133,7 @@ namespace API.Controllers
             {
                 if (id == Guid.Empty) return BadRequest();
                 var feedback = await _feedbackRepository.GetByIdAsync(id);
-                if (feedback == null || feedback.isDeleted)
+                if (feedback == null || feedback.IsReply)
                 {
                     return NotFound("Feedback not found.");
                 }
@@ -158,6 +158,7 @@ namespace API.Controllers
                 feedback.Id,
                 feedback.Rating,
                 feedback.Description,
+                feedback.IsReply,
                 User = new
                 {
                     feedback.User.Email,
@@ -178,6 +179,7 @@ namespace API.Controllers
             var getFeedBack = await _feedbackRepository.FindWithInclude()
                                                        .Include(x => x.User)
                                                        .Include(h => h.HomeStay)
+                                                       .ThenInclude(x => x.User)
                                                        .FirstOrDefaultAsync(x => x.Id == request.FeedBackID);
 
             var getHomeStay = await _homeStayRepository.GetByIdAsync(getFeedBack.HomeStay.Id);
@@ -258,6 +260,7 @@ namespace API.Controllers
                                               {request.Message}
                                             </div>
                                             <p>Nếu bạn có bất kỳ câu hỏi hay thắc mắc nào, xin vui lòng liên hệ lại với chúng tôi.</p>
+                                            <p>Hotline: {getFeedBack.HomeStay.User.Phone} | Email:{getFeedBack.HomeStay.User.Email}</p>
                                             <p>Trân trọng,<br/><strong>Đội ngũ {getHomeStay.Name}</strong></p>
                                           </div>
                                           <div class='footer'>
@@ -267,7 +270,9 @@ namespace API.Controllers
                                       </body>
                                     </html>";
             await _emailSender.SendEmailAsync(getFeedBack.User.Email, subject, emailBodyHtml);
-
+            getFeedBack.IsReply = true;
+            await _feedbackRepository.UpdateAsync(getFeedBack);
+            await _feedbackRepository.SaveAsync();
             return Ok(new { message = "Gửi phản hồi thành công đến người dùng." });
         }
     }

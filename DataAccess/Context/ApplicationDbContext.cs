@@ -31,6 +31,8 @@ namespace DataAccess.Context
         public DbSet<HomeStayFacility> HomeStayFacilities { get; set; }
         public DbSet<Facility> Facilities { get; set; }
         public DbSet<Refunds> Refunds { get; set; }
+
+        public DbSet<TTlockAccuont> TTLockAccount {  get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

@@ -116,7 +116,7 @@ public class FeedBackControllerTesting
             UserID = userId,
             Rating = 2,
             Description = "Old description",
-            isDeleted = false
+            IsReply = false
         };
 
         _mockFeedbackRepo.Setup(r => r.GetByIdAsync(feedbackId)).ReturnsAsync(existingFeedback);
@@ -175,7 +175,7 @@ public class FeedBackControllerTesting
         {
             Id = feedbackId,
             UserID = Guid.NewGuid(), // khác user
-            isDeleted = false
+            IsReply = false
         };
 
         _mockFeedbackRepo.Setup(r => r.GetByIdAsync(feedbackId)).ReturnsAsync(feedback);
@@ -218,7 +218,7 @@ public class FeedBackControllerTesting
         {
             Id = feedbackId,
             UserID = userId,
-            isDeleted = false
+            IsReply = false
         };
 
         _mockFeedbackRepo.Setup(r => r.GetByIdAsync(feedbackId)).ReturnsAsync(existingFeedback);
@@ -272,7 +272,7 @@ public class FeedBackControllerTesting
     public async Task DeleteFeedback_ReturnsNotFound_WhenFeedbackIsDeleted()
     {
         // Arrange
-        var feedback = new FeedBack { Id = Guid.NewGuid(), isDeleted = true };
+        var feedback = new FeedBack { Id = Guid.NewGuid(), IsReply = true };
         _mockFeedbackRepo.Setup(r => r.GetByIdAsync(feedback.Id))
             .ReturnsAsync(feedback);
 
@@ -291,7 +291,7 @@ public class FeedBackControllerTesting
         {
             Id = Guid.NewGuid(),
             UserID = Guid.NewGuid(),
-            isDeleted = false
+            IsReply = false
         };
         _mockFeedbackRepo.Setup(r => r.GetByIdAsync(feedback.Id)).ReturnsAsync(feedback);
 
@@ -312,7 +312,7 @@ public class FeedBackControllerTesting
         {
             Id = feedbackId,
             UserID = userId,
-            isDeleted = false
+            IsReply = false
         };
 
         _mockFeedbackRepo.Setup(r => r.GetByIdAsync(feedbackId)).ReturnsAsync(feedback);
@@ -326,7 +326,7 @@ public class FeedBackControllerTesting
         Assert.IsInstanceOf<OkObjectResult>(result);
         var okResult = result as OkObjectResult;
         var returnedFeedback = okResult.Value as FeedBack;
-        Assert.IsTrue(returnedFeedback.isDeleted);
+        Assert.IsTrue(returnedFeedback.IsReply);
     }
 
     [Test]
@@ -381,7 +381,7 @@ public class FeedBackControllerTesting
         var feedback = new FeedBack
         {
             Id = Guid.NewGuid(),
-            isDeleted = true
+            IsReply = true
         };
 
         _mockFeedbackRepo.Setup(r => r.GetByIdAsync(feedback.Id))
@@ -403,7 +403,7 @@ public class FeedBackControllerTesting
         var feedback = new FeedBack
         {
             Id = Guid.NewGuid(),
-            isDeleted = false,
+            IsReply = false,
             Description = "Nice place!",
             Rating = 5
         };
