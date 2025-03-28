@@ -608,6 +608,7 @@ namespace API.Controllers
                         .ThenInclude(ha => ha.Amenity)
                         .Include(hf => hf.HomestayFacilities)
                         .ThenInclude(fa => fa.Facility)
+                        .Include( t => t.TTlockAccuonts)
                         .Where(u => u.UserID == userID).ToListAsync();
             if (listHomeStay.Count == 0)
             {
@@ -648,7 +649,13 @@ namespace API.Controllers
                     hf.FacilityID,
                     hf.Facility.Name,
                     hf.Facility.Description
-                }).ToList()
+                }).ToList(),
+                TTlockAccuont = h.TTlockAccuonts.Select(ta => new
+                {
+                    ta.TTLockID,
+                    ta.TTLockUserName,
+                    ta.Password
+                })
             }).ToList();
             return Ok(response);
         }

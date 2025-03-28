@@ -52,5 +52,7 @@ namespace BusinessObject.Entities
 
         public ICollection<HomeStayFacility> HomestayFacilities { get; set; }
 
+        public ICollection<TTlockAccuont> TTlockAccuonts { get; set; }
+
     }
 }

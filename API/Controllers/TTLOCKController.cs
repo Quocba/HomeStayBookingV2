@@ -13,8 +13,26 @@ using BusinessObject.DTO;
 [Route("api/ttlock")]
 public class TTLOCKController(HttpClient _client, IConfiguration _configuration, IRepository<TTlockAccuont> _ttlockRepository) : ControllerBase
 {
+    [HttpPut("edit-ttlock-account")]
+    public async Task<IActionResult> EditTTLockAccount([FromForm] UpdateTTLOCKAccountDTO reqeust)
+    {
+        var getTtlockAccount = await _ttlockRepository.FindWithInclude()
+                                                .Include(x => x.HomeStayID)
+                                                .FirstOrDefaultAsync(x => x.HomeStayID == reqeust.HomeStayID);
+        if (getTtlockAccount == null)
+        {
+            return NotFound();
+        }
+        getTtlockAccount.TTLockUserName = reqeust.TTLockUserName ?? getTtlockAccount.TTLockUserName;
+        getTtlockAccount.Password = reqeust.Password ?? getTtlockAccount.Password;
 
-        [HttpPost("add-ttlock-account")]
+        await _ttlockRepository.UpdateAsync(getTtlockAccount);
+        await _ttlockRepository.SaveAsync();
+
+        return Ok(new { Message = "Update TTLOCk Account Success" });
+
+    }
+    [HttpPost("add-ttlock-account")]
         public async Task<IActionResult> AddTTLockAccount([FromBody]TTlockAccuontDTO request)
         {
             var addTTLockAccount = new TTlockAccuont
@@ -80,7 +98,6 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
 
         var accessToken = accessTokenProp.GetString();
 
-        //List lock of account
         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var url = $"https://euapi.ttlock.com/v3/lock/list?" +
                   $"clientId={clientId}&" +
@@ -112,7 +129,7 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
                     result.Add(dto);
                 }
 
-                return Ok(result);
+                return Ok(new {Data = result });
             }
             else
             {
@@ -189,33 +206,17 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
                          $"&orderBy={orderBy}" +
                          $"&date={timestamp}";
 
+
             var response = await _client.GetAsync(url);
             string responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
             {
-                var json = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                if (json.TryGetProperty("list", out var lockList))
+                return Ok(new
                 {
-                    var result = new List<LockInfroDTO>();
-
-                    foreach (var item in lockList.EnumerateArray())
-                    {
-                        var dto = new LockInfroDTO
-                        {
-                            LockID = item.GetProperty("lockId").GetInt32(),
-                            LockPassword = long.TryParse(item.GetProperty("keyboardPwd").GetString(), out var pwd) ? pwd : 0,
-                            LockName = item.GetProperty("keyboardPwdName").GetString()
-                        };
-
-                        result.Add(dto);
-                    }
-
-                    return Ok(result);
-                }
-
-                return BadRequest(new { message = "Key list not found in response." });
+                    message = "Lấy danh sách mật khẩu thành công.",
+                    response = JsonDocument.Parse(responseContent).RootElement
+                });
             }
             else
             {
@@ -225,6 +226,7 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
                     response = responseContent
                 });
             }
+
         }
         catch (Exception ex)
         {
@@ -319,7 +321,7 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
         }
 
     [HttpPost("unlock-remote")]
-    public async Task<IActionResult> UnlockRemote(Guid homeStayID, int lockID)
+    public async Task<IActionResult> UnlockRemote([FromForm]Guid homeStayID, [FromForm]int lockID)
     {
         try
         {
@@ -371,7 +373,6 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
             var accessToken = accessTokenProp.GetString();
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-            // Gửi request mở khóa
             var unlockForm = new Dictionary<string, string>
             {
                 ["clientId"] = clientId,
@@ -411,11 +412,15 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
     }
 
     [HttpPost("change-keyboard-password")]
-    public async Task<IActionResult> ChangeKeyboardPassword(Guid homeStayID, int lockID, long keyboardPwdId, string newPasscode, long startDate, long endDate, string? name = null)
+    public async Task<IActionResult> ChangeKeyboardPassword([FromForm]Guid homeStayID,
+        [FromForm] int lockID, 
+        [FromForm] long keyboardPwdId, 
+        [FromForm] string newPasscode, 
+        [FromForm] DateTime startDate,  [FromForm] DateTime endDate, [FromForm]string? name = null)
     {
         try
         {
-            // Lấy thông tin tài khoản TTLock theo HomeStay
+
             var ttlockAccount = await _ttlockRepository.FindWithInclude()
                 .Include(x => x.HomeStay)
                 .FirstOrDefaultAsync(x => x.HomeStayID == homeStayID);
@@ -429,7 +434,6 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
                 return StatusCode(500, "TTLock client_id or client_secret is not configured.");
 
-            // Lấy access token
             var tokenForm = new Dictionary<string, string>
             {
                 ["clientId"] = clientId,
@@ -463,8 +467,10 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
 
             var accessToken = accessTokenProp.GetString();
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var startTime = new DateTimeOffset(startDate).ToUnixTimeMilliseconds();
+            var endTimestamp = new DateTimeOffset(endDate).ToUnixTimeMilliseconds();
 
-            // Gửi request đổi passcode
+
             var changeForm = new Dictionary<string, string>
             {
                 ["clientId"] = clientId,
@@ -472,13 +478,12 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
                 ["lockId"] = lockID.ToString(),
                 ["keyboardPwdId"] = keyboardPwdId.ToString(),
                 ["newKeyboardPwd"] = newPasscode,
-                ["startDate"] = startDate.ToString(),
-                ["endDate"] = endDate.ToString(),
-                ["changeType"] = "2", // sử dụng API qua gateway hoặc WiFi
+                ["startDate"] = startTime.ToString(),
+                ["endDate"] = endTimestamp.ToString(),
+                ["changeType"] = "2",
                 ["date"] = timestamp.ToString()
             };
 
-            // Tùy chọn thêm tên nếu có
             if (!string.IsNullOrEmpty(name))
             {
                 changeForm["keyboardPwdName"] = name;
