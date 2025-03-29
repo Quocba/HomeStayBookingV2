@@ -17,14 +17,14 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
     public async Task<IActionResult> EditTTLockAccount([FromForm] UpdateTTLOCKAccountDTO reqeust)
     {
         var getTtlockAccount = await _ttlockRepository.FindWithInclude()
-                                                .Include(x => x.HomeStayID)
+                                                .Include(x => x.HomeStay)
                                                 .FirstOrDefaultAsync(x => x.HomeStayID == reqeust.HomeStayID);
         if (getTtlockAccount == null)
         {
             return NotFound();
         }
         getTtlockAccount.TTLockUserName = reqeust.TTLockUserName ?? getTtlockAccount.TTLockUserName;
-        getTtlockAccount.Password = reqeust.Password ?? getTtlockAccount.Password;
+        getTtlockAccount.Password = Util.GenerateMD5(reqeust.Password!) ?? getTtlockAccount.Password;
 
         await _ttlockRepository.UpdateAsync(getTtlockAccount);
         await _ttlockRepository.SaveAsync();
@@ -38,7 +38,7 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
             var addTTLockAccount = new TTlockAccuont
             {
                 TTLockUserName = request.TTLockUserName,
-                Password = Util.GenerateMD5(request.Password)!,
+                Password = Util.GenerateMD5(request.Password!),
                 TTLockID = Guid.NewGuid(),
                 HomeStayID = request.HomeStayID
             };
