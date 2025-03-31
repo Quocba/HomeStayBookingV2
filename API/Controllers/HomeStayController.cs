@@ -218,13 +218,17 @@ namespace API.Controllers
                     return NotFound();
                 }
 
-                var checkAlreadyName = _homeStayRepository.FindWithInclude()
-                                     .FirstOrDefaultAsync(x => x.Name.Equals(request.Name) && x.UserID == getHomeStay.UserID);
-
-                if (checkAlreadyName != null)
+                if (!request.Name.Equals(getHomeStay.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return Conflict(new {Message = "Home Stay Name Already Exist"});
+                    var checkAlreadyName = await _homeStayRepository.FindWithInclude()
+                        .FirstOrDefaultAsync(x => x.Name.Equals(request.Name) && x.UserID == getHomeStay.UserID);
+
+                    if (checkAlreadyName != null)
+                    {
+                        return Conflict(new { Message = "Home Stay Name Already Exists" });
+                    }
                 }
+
                 getHomeStay.Name = request.Name ?? getHomeStay.Name;
                 getHomeStay.MainImage = request.MainImage ?? getHomeStay.MainImage;
                 getHomeStay.Standar = getHomeStay.Standar = request.Standar != 0 ? request.Standar : getHomeStay.Standar;
@@ -233,6 +237,7 @@ namespace API.Controllers
                 getHomeStay.Address = request.Address ?? getHomeStay.Address;
                 getHomeStay.OpenIn = request.OpenIn = request.OpenIn != 0 ? request.OpenIn : getHomeStay.OpenIn;
                 getHomeStay.Description = request.Description ?? getHomeStay.Description;
+                getHomeStay.City = request.City ?? getHomeStay.City;
                 await _homeStayRepository.UpdateAsync(getHomeStay);
                 await _homeStayRepository.SaveAsync();
                 return Ok(new { Message = "Update Home Stay Success" });

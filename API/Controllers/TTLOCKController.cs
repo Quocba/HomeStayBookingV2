@@ -23,6 +23,7 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
         {
             return NotFound();
         }
+
         getTtlockAccount.TTLockUserName = reqeust.TTLockUserName ?? getTtlockAccount.TTLockUserName;
         getTtlockAccount.Password = Util.GenerateMD5(reqeust.Password!) ?? getTtlockAccount.Password;
 
