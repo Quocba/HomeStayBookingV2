@@ -3,6 +3,7 @@ using API.Controllers;
 using BusinessObject.Entities;
 using BusinessObject.Exceptions;
 using BusinessObject.Interfaces;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -21,6 +22,7 @@ public class PaymentControllerTesting
     private Mock<IPayOSService> _mockPayOSService;
     private Mock<IRepository<BusinessObject.Entities.Calendar>> _mockCalendarRepo;
     private IOptions<PayOSConfig> _payosConfigOptions;
+    private Mock<IEmailSender> _emailSenderRepo;
     private PaymentController _controller;
     [SetUp]
     public void Setup()
@@ -34,7 +36,10 @@ public class PaymentControllerTesting
             _mockBookingRepo.Object,
             _mockTransactionRepo.Object,
             _mockCalendarRepo.Object,
+            _emailSenderRepo.Object,
             _mockPayOSService.Object,
+
+        
             _payosConfigOptions
         );
     }
@@ -181,6 +186,7 @@ public class PaymentControllerTesting
             _mockBookingRepo.Object,
             _mockTransactionRepo.Object,
             _mockCalendarRepo.Object,
+            _emailSenderRepo.Object,
             _mockPayOSService.Object,
             _payosConfigOptions
         );
@@ -266,6 +272,7 @@ public class PaymentControllerTesting
             _mockBookingRepo.Object,
             _mockTransactionRepo.Object,
             _mockCalendarRepo.Object,
+            _emailSenderRepo.Object,
             _mockPayOSService.Object,
             _payosConfigOptions
         );

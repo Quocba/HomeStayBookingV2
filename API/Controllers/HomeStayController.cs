@@ -651,7 +651,7 @@ namespace API.Controllers
             var response = listHomeStay.Select(h => new
             {
                 h.Id,
-                h.Name,
+                h.Name, 
                 h.MainImage,
                 h.Address,
                 h.City,
@@ -686,6 +686,7 @@ namespace API.Controllers
                     c.isBooked == false &&
                     c.Date >= request.CheckInDate &&
                     c.Date <= request.CheckOutDate
+                    && c.HomeStay.City == request.City
                 ))
                 .ToListAsync();
 

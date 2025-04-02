@@ -46,7 +46,10 @@ namespace API.Controllers
 
             var existingUser = await _userRepository.GetByEmailAsync(command.Email);
 
-            if (existingUser != null) throw new InvalidCredentialsException("User already exists");
+            if (existingUser != null)
+            {
+                return Conflict(new {Message = "Email Already Exist"});
+            }
 
             Guid userId = Guid.NewGuid();
 
