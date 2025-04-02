@@ -264,7 +264,7 @@ public class PaymentControllerTesting
         var expectedRedirectUrl = "https://client-redirect.com";
         var config = new PayOSConfig
         {
-            ReturnUrl = expectedRedirectUrl // sửa đúng property controller dùng
+            ReturnUrl = expectedRedirectUrl
         };
 
         _payosConfigOptions = Options.Create(config);

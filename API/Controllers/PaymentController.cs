@@ -107,11 +107,11 @@ namespace API.Controllers
                     calendar.isBooked = false;
                     await _calendarRepository.UpdateAsync(calendar);
                 }
-                await _emailSender.SendEmailAsync(getUser.User.Email, "Thao Tác Đặt Phòng Thất Bại", SendMailBooking(homeStay, booking));
-
                 await _calendarRepository.SaveAsync();
                 booking.Status = "Payment Cancelled";
-                
+                await _emailSender.SendEmailAsync(getUser.User.Email, "Thao Tác Đặt Phòng Thất Bại", SendMailBooking(homeStay, booking));
+
+
             }
 
             await _bookingRepository.UpdateAsync(booking);
