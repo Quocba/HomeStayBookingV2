@@ -1289,9 +1289,16 @@ public class HomeStayControllerTesting
         _mockHomeStayRepo
             .Setup(repo => repo.FindWithInclude(It.IsAny<Expression<Func<HomeStay, object>>[]>()))
             .Returns(mockHomeStays);
-
+        FilterDTO filter = new FilterDTO
+        {
+            AmenityNames = null,
+            MaxPrice = null,
+            MinPrice = null,
+            SearchText = null,
+            Standard = null
+        };
         // Act
-        var result = await _controller.GetHomeStayByUser(userId);
+        var result = await _controller.GetHomeStayByUser(userId, filter);
 
         // Assert
         var okResult = result as OkObjectResult;
@@ -1320,9 +1327,16 @@ public class HomeStayControllerTesting
 
         _mockHomeStayRepo.Setup(repo => repo.FindWithInclude(It.IsAny<Expression<Func<HomeStay, object>>[]>()))
                          .Returns(emptyList);
-
+        FilterDTO filter = new FilterDTO
+        {
+            AmenityNames = null,
+            MaxPrice = null,
+            MinPrice = null,
+            SearchText = null,
+            Standard = null
+        };
         // Act
-        var result = await _controller.GetHomeStayByUser(userId);
+        var result = await _controller.GetHomeStayByUser(userId, filter);
 
         // Assert
         Assert.IsInstanceOf<NotFoundResult>(result);

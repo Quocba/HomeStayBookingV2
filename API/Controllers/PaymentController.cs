@@ -4,6 +4,7 @@ using BusinessObject.Interfaces;
 using BusinessObject.Shares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PayOSService.Config;
 using PayOSService.DTO;
@@ -15,6 +16,7 @@ namespace API.Controllers
     [ApiController]
     public class PaymentController(IRepository<Booking> _bookingRepository,
                                    IRepository<Transaction> _transactionRepository,
+                                   IRepository<Calendar> _calendarRepository,
                                    IPayOSService _payOSService,
                                    IOptions<PayOSConfig> payosConfigOptions) : ControllerBase
     {
@@ -80,6 +82,23 @@ namespace API.Controllers
             if (code == "00" && status == "PAID")
             {
                 booking.Status = "Paid";
+            }
+
+            else
+            {
+                var relatedCalendars = await _calendarRepository
+                .FindWithInclude()
+                .Where(c => c.BookingID == booking.Id)
+                .ToListAsync();
+                foreach (var calendar in relatedCalendars)
+                {
+                    calendar.BookingID = null;
+                    calendar.isBooked = false;
+                    await _calendarRepository.UpdateAsync(calendar);
+                }
+                await _calendarRepository.SaveAsync();
+                booking.Status = "Payment Cancelled";
+                
             }
 
             await _bookingRepository.UpdateAsync(booking);

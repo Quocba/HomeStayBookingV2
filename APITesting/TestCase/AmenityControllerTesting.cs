@@ -16,12 +16,12 @@ public class AmenityControllerTesting
 {
     private Mock<IRepository<Amenity>> _mockRepo;
     private AmenityController _controller;
-
+    private Mock<IRepository<HomestayAmenity>> _mockHomeStayAmenityRepository;
     [SetUp]
     public void Setup()
     {
         _mockRepo = new Mock<IRepository<Amenity>>();
-        _controller = new AmenityController(_mockRepo.Object);
+        _controller = new AmenityController(_mockRepo.Object, _mockHomeStayAmenityRepository.Object);
     }
 
 
@@ -89,7 +89,7 @@ public class AmenityControllerTesting
         new Amenity { Name = "Air-Conditioning" }
     });
 
-        var controller = new AmenityController(mockRepo.Object);
+        var controller = new AmenityController(mockRepo.Object, _mockHomeStayAmenityRepository.Object);
 
         var request = new AddSystemAmenityRequest
         {

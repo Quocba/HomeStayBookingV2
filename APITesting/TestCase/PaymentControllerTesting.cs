@@ -19,6 +19,7 @@ public class PaymentControllerTesting
     private Mock<IRepository<Booking>> _mockBookingRepo;
     private Mock<IRepository<Transaction>> _mockTransactionRepo;
     private Mock<IPayOSService> _mockPayOSService;
+    private Mock<IRepository<BusinessObject.Entities.Calendar>> _mockCalendarRepo;
     private IOptions<PayOSConfig> _payosConfigOptions;
     private PaymentController _controller;
     [SetUp]
@@ -32,6 +33,7 @@ public class PaymentControllerTesting
         _controller = new PaymentController(
             _mockBookingRepo.Object,
             _mockTransactionRepo.Object,
+            _mockCalendarRepo.Object,
             _mockPayOSService.Object,
             _payosConfigOptions
         );
@@ -178,6 +180,7 @@ public class PaymentControllerTesting
         _controller = new PaymentController(
             _mockBookingRepo.Object,
             _mockTransactionRepo.Object,
+            _mockCalendarRepo.Object,
             _mockPayOSService.Object,
             _payosConfigOptions
         );
@@ -262,6 +265,7 @@ public class PaymentControllerTesting
         _controller = new PaymentController(
             _mockBookingRepo.Object,
             _mockTransactionRepo.Object,
+            _mockCalendarRepo.Object,
             _mockPayOSService.Object,
             _payosConfigOptions
         );

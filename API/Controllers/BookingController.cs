@@ -142,7 +142,7 @@ namespace API.Controllers
                 CheckOutDate = checkOutDate,
                 TotalPrice = totalPrice,
                 UnitPrice = totalPrice / (checkOutDate - checkInDate).Days,
-                Status = "Pending",
+                Status = "Wait For Payment",
                 UserID = userId,
                 HomeStayName = homeStay.Name,
                 HomeStayAddress = homeStay.Address,
@@ -469,22 +469,37 @@ namespace API.Controllers
         [HttpGet("analyze-revenue-system-home-stay")]
         public async Task<IActionResult> AnalyzeRevenueSystemHomeStay()
         {
-            var revenueList =  (_bookingRepository.FindWithInclude(b => b.Calendars))
-                .SelectMany(b => b.Calendars, (b, c) => new { b, c.HomeStay })
-                .GroupBy(h => new { h.HomeStay.Id, h.HomeStay.Name, h.HomeStay.MainImage, h.HomeStay.Address })
-                .Select(g => new
+            var revenueList = (_calendarRepository.FindWithInclude(c => c.HomeStay, c => c.Booking))
+                                .GroupBy(c => new { c.HomeStay.Id, c.HomeStay.Name, c.HomeStay.MainImage, c.HomeStay.Address })
+                                .Select(g => new
+                                {
+                                    HomeStayID = g.Key.Id,
+                                    MainImage = g.Key.MainImage,
+                                    HomeStayName = g.Key.Name,
+                                    Address = g.Key.Address,
+                                    TotalRevenue = g.Sum(x => x.BookingID.HasValue && x.Booking != null ? x.Booking.TotalPrice : 0m)
+                                })
+                                .OrderByDescending(x => x.TotalRevenue)
+                                .ToList();
+            var allHomeStays = await _homeStayRepository.GetAllAsync();
+            foreach (var homeStay in allHomeStays)
+            {
+                if (!revenueList.Any(x => x.HomeStayID == homeStay.Id))
                 {
-                    HomeStayID = g.Key.Id,
-                    MainImage = g.Key.MainImage,
-                    HomeStayName = g.Key.Name,
-                    Address = g.Key.Address,
-                    TotalRevenue = g.Sum(x => x.b.TotalPrice)
-                }).OrderByDescending(x => x.TotalRevenue)
-                .ToList();
+                    revenueList.Add(new
+                    {
+                        HomeStayID = homeStay.Id,
+                        MainImage = homeStay.MainImage,
+                        HomeStayName = homeStay.Name,
+                        Address = homeStay.Address,
+                        TotalRevenue = 0m
+                    });
+                }
+            }
 
-            return Ok(revenueList);
+            return Ok(revenueList); 
         }
-
+      
         [HttpGet("get-booking-by-home-stay")]
         public async Task<IActionResult> GetBookingByHomeStay([FromQuery] Guid homeStayID)
         {

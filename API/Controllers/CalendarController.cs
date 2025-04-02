@@ -78,7 +78,7 @@ namespace API.Controllers
                         return BadRequest(new { Message = $"HomeStay {dto.HomeStayID} not found" });
 
                     var existingCalendar = existingCalendars
-                        .FirstOrDefault(c => c.HomeStay.Id == dto.HomeStayID && c.Date.Date == dto.Date.Date);
+                        .FirstOrDefault(c => c.HomeStay.Id == dto.HomeStayID && c.Date == dto.Date);
 
                     if (existingCalendar != null)
                     {

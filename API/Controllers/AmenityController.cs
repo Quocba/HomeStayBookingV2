@@ -9,7 +9,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AmenityController(IRepository<Amenity> _amenityRepository) :
+    public class AmenityController(IRepository<Amenity> _amenityRepository, IRepository<HomestayAmenity> _homeStayAmentityRepository) :
         ControllerBase
     {
 
@@ -81,5 +81,66 @@ namespace API.Controllers
                                   .ToListAsync();
             return Ok(amenityList);
         }
+
+        [HttpPut("edit-amenity")]
+        public async Task<IActionResult> EditAmentity([FromBody]EditAmentityDTO request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest("In valid input");
+                }
+                var checkUpdate = await _amenityRepository.GetByIdAsync(request.AmentityID);
+                if (checkUpdate == null)
+                {
+                    return NotFound(new { Message = "Amentity Not Found" });
+                }
+
+                checkUpdate.Name = request.AmentityName ?? checkUpdate.Name;
+                await _amenityRepository.SaveAsync();
+                return Ok(new { Message = "Edit Amentity Success" });
+            }
+            catch (Exception ex) { 
+            
+                return StatusCode(500, ex.ToString());
+            }
+        }
+
+
+        [HttpDelete("delete-amentity")]
+        public async Task<IActionResult> DeleteAmentity([FromQuery] Guid AmentityID)
+        {
+            try
+            {
+                if (AmentityID == Guid.Empty)
+                {
+                    return BadRequest(new { Message = "AmentityID can be not empty" });
+                }
+
+                var getDelete = await _amenityRepository.GetByIdAsync(AmentityID);
+                if (getDelete == null)
+                {
+                    return NotFound();
+                }
+                var relatedHomeStayAmenities = await _homeStayAmentityRepository.FindWithInclude()
+                                                                                .Where(x => x.AmenityId == AmentityID)
+                                                                                .ToListAsync();
+                if (relatedHomeStayAmenities.Count > 0)
+                {
+                    _homeStayAmentityRepository.DeleteRange(relatedHomeStayAmenities);
+                  await _homeStayAmentityRepository.SaveAsync();
+                }
+
+                await _amenityRepository.DeleteAsync(getDelete);
+                await _amenityRepository.SaveAsync();
+                return Ok(new { Message = "Delete Amentity Success" });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.ToString());
+            }
+        }
+
     }
 }
