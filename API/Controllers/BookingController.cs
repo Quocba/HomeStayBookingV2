@@ -223,8 +223,8 @@ namespace API.Controllers
             if (booking == null)
                 return NotFound(new { Message = "Booking not found" });
 
-            if (booking.Status == "Paid")
-                return BadRequest(new { Message = "Cannot cancel a paid booking" });
+            //if (booking.Status == "Paid")
+            //    return BadRequest(new { Message = "Cannot cancel a paid booking" });
 
             if (booking.Status == "Canceled")
                 return BadRequest(new { Message = "Booking is already canceled" });
