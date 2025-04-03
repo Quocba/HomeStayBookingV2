@@ -292,7 +292,7 @@ namespace API.Controllers
                 await _calendarRepository.SaveAsync();
                 await _bookingRepository.SaveAsync();
 
-                return Redirect("http://localhost:3000");
+                return Redirect("https://cust-homestay.vercel.app");
             }
             catch(Exception ex)
             {
