@@ -20,8 +20,41 @@ using PayOSService.Services;
 using PayOSService.Config;
 using API.BackgroundService;
 using BusinessObject.Entities;
+using BusinessObject.Shares;
+
 
 var builder = WebApplication.CreateBuilder(args);
+bool checkPass = false;
+int count = 0;
+
+do
+{
+    var startUpKey = builder.Configuration["StartupKey:Key"];
+
+    Console.Write("Please enter startup key: ");
+    string pass = Console.ReadLine();
+
+    string hashedPass = Util.GenerateMD5(pass);
+
+    if (startUpKey.Equals(hashedPass))
+    {
+        Console.WriteLine("Startup API Success");
+        break; 
+    }
+    else
+    {
+        Console.WriteLine("Startup password incorrect");
+        count++;
+        if (count == 3)
+        {
+            Console.WriteLine("Too many incorrect attempts. Exiting...");
+            break;  
+        }
+        checkPass = true; 
+    }
+
+} while (checkPass);
+
 
 // Add services to the container.
 

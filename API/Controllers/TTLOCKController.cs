@@ -235,7 +235,121 @@ public class TTLOCKController(HttpClient _client, IConfiguration _configuration,
         }
     }
 
-        [HttpPost("lock-remote")]
+
+
+    [HttpGet("keyboard-passwords-FromQuery")]
+    public async Task<IActionResult> GetKeyboardPasswordsFromQuery([FromQuery] Guid homeStayID, [FromQuery] int lockID)
+    {
+        try
+        {
+            var ttlockAccount = await _ttlockRepository.FindWithInclude()
+                               .Include(x => x.HomeStay)
+                               .FirstOrDefaultAsync(x => x.HomeStayID == homeStayID);
+
+            if (ttlockAccount == null)
+                return NotFound(new { message = "TTLock account not found for this homestay." });
+
+            var clientId = _configuration["TTLOCKConfig:client_id"];
+            var clientSecret = _configuration["TTLOCKConfig:client_secret"];
+
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+                return StatusCode(500, "TTLock client_id or client_secret is not configured.");
+
+            var tokenForm = new Dictionary<string, string>
+            {
+                ["clientId"] = clientId,
+                ["clientSecret"] = clientSecret,
+                ["username"] = ttlockAccount.TTLockUserName!,
+                ["password"] = ttlockAccount.Password!,
+                ["grant_type"] = "password"
+            };
+
+            var tokenResponse = await _client.PostAsync("https://euapi.ttlock.com/oauth2/token", new FormUrlEncodedContent(tokenForm));
+            var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
+
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
+                return StatusCode((int)tokenResponse.StatusCode, new
+                {
+                    message = "Error getting access_token",
+                    response = tokenJson
+                });
+            }
+
+            var tokenObj = JsonSerializer.Deserialize<JsonElement>(tokenJson);
+            if (!tokenObj.TryGetProperty("access_token", out var accessTokenProp))
+            {
+                return BadRequest(new
+                {
+                    message = "Access_token not found",
+                    response = tokenJson
+                });
+            }
+
+            var accessToken = accessTokenProp.GetString();
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            int orderBy = 1;
+
+            string url = $"https://euapi.ttlock.com/v3/lock/listKeyboardPwd" +
+                         $"?clientId={clientId}" +
+                         $"&accessToken={accessToken}" +
+                         $"&lockId={lockID}" +
+                         $"&pageNo={1}" +
+                         $"&pageSize={int.MaxValue}" +
+                         $"&orderBy={orderBy}" +
+                         $"&date={timestamp}";
+
+
+            var response = await _client.GetAsync(url);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = JsonDocument.Parse(responseContent).RootElement;
+
+                if (jsonResponse.TryGetProperty("list", out var dataArray) && dataArray.ValueKind == JsonValueKind.Array && dataArray.GetArrayLength() > 0)
+                {
+                    var firstItem = dataArray[0];
+
+
+                    if (firstItem.TryGetProperty("keyboardPwd", out var keyboardPwdProp))
+                    {
+                        string keyboardPwd = keyboardPwdProp.GetString()!;
+                        return Ok(new
+                        {
+                            Password = $"{keyboardPwd}",
+                           
+                        });
+                    }
+                    else
+                    {
+                        return BadRequest(new { message = "keyboardPwd not found in the first item.", response = responseContent });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { message = "No data found in the response.", response = responseContent });
+                }
+            }
+            else
+            {
+                return StatusCode((int)response.StatusCode, new
+                {
+                    message = "TTLock API call failed.",
+                    response = responseContent
+                });
+            }
+
+
+
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Error when calling TTLock API", error = ex.Message });
+        }
+    }
+
+    [HttpPost("lock-remote")]
         public async Task<IActionResult> LockRemote(Guid homeStayID, int lockID)
         {
             try
