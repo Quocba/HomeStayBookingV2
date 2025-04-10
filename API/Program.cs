@@ -24,36 +24,36 @@ using BusinessObject.Shares;
 
 
 var builder = WebApplication.CreateBuilder(args);
-bool checkPass = false;
-int count = 0;
+//bool checkPass = false;
+//int count = 0;
 
-do
-{
-    var startUpKey = builder.Configuration["StartupKey:Key"];
+//do
+//{
+//    var startUpKey = builder.Configuration["StartupKey:Key"];
 
-    Console.Write("Please enter startup key: ");
-    string pass = Console.ReadLine();
+//    Console.Write("Please enter startup key: ");
+//    string pass = Console.ReadLine();
 
-    string hashedPass = Util.GenerateMD5(pass);
+//    string hashedPass = Util.GenerateMD5(pass);
 
-    if (startUpKey.Equals(hashedPass))
-    {
-        Console.WriteLine("Startup API Success");
-        break; 
-    }
-    else
-    {
-        Console.WriteLine("Startup password incorrect");
-        count++;
-        if (count == 3)
-        {
-            Console.WriteLine("Too many incorrect attempts. Exiting...");
-            break;  
-        }
-        checkPass = true; 
-    }
+//    if (startUpKey.Equals(hashedPass))
+//    {
+//        Console.WriteLine("Startup API Success");
+//        break; 
+//    }
+//    else
+//    {
+//        Console.WriteLine("Startup password incorrect");
+//        count++;
+//        if (count == 3)
+//        {
+//            Console.WriteLine("Too many incorrect attempts. Exiting...");
+//            break;  
+//        }
+//        checkPass = true; 
+//    }
 
-} while (checkPass);
+//} while (checkPass);
 
 
 // Add services to the container.
