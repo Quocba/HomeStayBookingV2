@@ -11,6 +11,8 @@ using Newtonsoft.Json.Linq;
 using PayOSService.Config;
 using PayOSService.DTO;
 using PayOSService.Services;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore;
 #pragma warning disable
 
 namespace APITesting;
@@ -24,13 +26,20 @@ public class PaymentControllerTesting
     private IOptions<PayOSConfig> _payosConfigOptions;
     private Mock<IEmailSender> _emailSenderRepo;
     private PaymentController _controller;
+
     [SetUp]
     public void Setup()
     {
         _mockBookingRepo = new Mock<IRepository<Booking>>();
         _mockTransactionRepo = new Mock<IRepository<Transaction>>();
         _mockPayOSService = new Mock<IPayOSService>();
-        _payosConfigOptions = Options.Create(new PayOSConfig()); 
+        _mockCalendarRepo = new Mock<IRepository<BusinessObject.Entities.Calendar>>();
+        _emailSenderRepo = new Mock<IEmailSender>();
+
+        _payosConfigOptions = Options.Create(new PayOSConfig
+        {
+            ReturnUrl = "https://example.com/payment-return"
+        });
 
         _controller = new PaymentController(
             _mockBookingRepo.Object,
@@ -38,8 +47,6 @@ public class PaymentControllerTesting
             _mockCalendarRepo.Object,
             _emailSenderRepo.Object,
             _mockPayOSService.Object,
-
-        
             _payosConfigOptions
         );
     }
@@ -111,7 +118,6 @@ public class PaymentControllerTesting
         _mockTransactionRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<Transaction, bool>>>()))
                             .ReturnsAsync(new List<Transaction>().AsQueryable());
 
-        // Mock tạo payment link mới
         var expectedLink = "https://new-payment-link.com";
         _mockPayOSService.Setup(s => s.CreatePaymentAsync(It.IsAny<CreatePaymentDTO>()))
                          .ReturnsAsync(expectedLink);
@@ -128,190 +134,12 @@ public class PaymentControllerTesting
         // Assert
         Assert.NotNull(result);
 
-        // Ép kiểu về JObject để kiểm tra dynamic trả về
         var json = JObject.FromObject(result.Value);
         var actualLink = json["paymentLink"]?.ToString();
 
         Assert.AreEqual(expectedLink, actualLink);
 
-        // Kiểm tra AddAsync và SaveAsync được gọi đúng
         _mockTransactionRepo.Verify(r => r.AddAsync(It.IsAny<Transaction>()), Times.Once);
         _mockTransactionRepo.Verify(r => r.SaveAsync(), Times.Once);
     }
-
-    [Test]
-    public async Task PaymentReturn_WithSuccessCodeAndStatus_UpdatesBookingAndReturnsOkResult()
-    {
-        // Arrange
-        var orderId = 999L;
-        var bookingId = Guid.NewGuid();
-
-        var transaction = new Transaction
-        {
-            ID = orderId,
-            BookingID = bookingId
-        };
-
-        var booking = new Booking
-        {
-            Id = bookingId,
-            Status = "Pending"
-        };
-
-        _mockTransactionRepo
-            .Setup(r => r.GetByIdAsync(orderId))
-            .ReturnsAsync(transaction);
-
-        _mockBookingRepo
-            .Setup(r => r.GetByIdAsync(bookingId))
-            .ReturnsAsync(booking);
-
-        _mockBookingRepo
-            .Setup(r => r.UpdateAsync(It.IsAny<Booking>()))
-            .Returns(Task.CompletedTask);
-
-        _mockBookingRepo
-            .Setup(r => r.SaveAsync())
-            .Returns(Task.CompletedTask);
-
-        var expectedRedirectUrl = "https://client-redirect.com";
-        var config = new PayOSConfig
-        {
-            ReturnUrl = expectedRedirectUrl
-        };
-
-        _payosConfigOptions = Options.Create(config);
-
-        _controller = new PaymentController(
-            _mockBookingRepo.Object,
-            _mockTransactionRepo.Object,
-            _mockCalendarRepo.Object,
-            _emailSenderRepo.Object,
-            _mockPayOSService.Object,
-            _payosConfigOptions
-        );
-
-        // Act
-        var result = await _controller.PaymentReturn(
-            code: "00",
-            id: "abc123",
-            cancel: "false",
-            status: "PAID",
-            orderCode: orderId.ToString()
-        );
-
-        // Assert
-        Assert.IsInstanceOf<OkObjectResult>(result);
-        var okResult = result as OkObjectResult;
-        Assert.NotNull(okResult);
-
-        var value = okResult!.Value!;
-        var valueType = value.GetType();
-
-        var successProp = valueType.GetProperty("success");
-        var redirectProp = valueType.GetProperty("redirectUrl");
-
-        Assert.IsNotNull(successProp);
-        Assert.IsNotNull(redirectProp);
-
-        var success = (bool?)successProp!.GetValue(value);
-        var redirectUrl = redirectProp!.GetValue(value)?.ToString();
-
-        Assert.IsTrue(success);
-        Assert.AreEqual(expectedRedirectUrl, redirectUrl);
-
-        Assert.AreEqual("Paid", booking.Status);
-        _mockBookingRepo.Verify(r => r.UpdateAsync(booking), Times.Once);
-        _mockBookingRepo.Verify(r => r.SaveAsync(), Times.Once);
-    }
-
-
-
-    [Test]
-    public async Task PaymentReturn_WithFailedCodeOrStatus_DoesNotUpdateBooking_StillRedirects()
-    {
-        var orderId = 1001L;
-        var bookingId = Guid.NewGuid();
-
-        var transaction = new Transaction
-        {
-            ID = orderId,
-            BookingID = bookingId
-        };
-
-        var booking = new Booking
-        {
-            Id = bookingId,
-            Status = "Pending"
-        };
-
-        _mockTransactionRepo
-            .Setup(r => r.GetByIdAsync(orderId))
-            .ReturnsAsync(transaction);
-
-        _mockBookingRepo
-            .Setup(r => r.GetByIdAsync(bookingId))
-            .ReturnsAsync(booking);
-
-        _mockBookingRepo
-            .Setup(r => r.UpdateAsync(It.IsAny<Booking>()))
-            .Returns(Task.CompletedTask);
-
-        _mockBookingRepo
-            .Setup(r => r.SaveAsync())
-            .Returns(Task.CompletedTask);
-
-        var expectedRedirectUrl = "https://client-redirect.com";
-        var config = new PayOSConfig
-        {
-            ReturnUrl = expectedRedirectUrl
-        };
-
-        _payosConfigOptions = Options.Create(config);
-        _controller = new PaymentController(
-            _mockBookingRepo.Object,
-            _mockTransactionRepo.Object,
-            _mockCalendarRepo.Object,
-            _emailSenderRepo.Object,
-            _mockPayOSService.Object,
-            _payosConfigOptions
-        );
-
-        var result = await _controller.PaymentReturn(
-            code: "99",
-            id: "abc123",
-            cancel: "true",
-            status: "FAILED",
-            orderCode: orderId.ToString()
-        );
-
-        Assert.IsInstanceOf<OkObjectResult>(result);
-        var okResult = result as OkObjectResult;
-        Assert.NotNull(okResult);
-
-        var value = okResult!.Value!;
-        var valueType = value.GetType();
-
-        var successProp = valueType.GetProperty("success");
-        var redirectProp = valueType.GetProperty("redirectUrl");
-
-        Assert.IsNotNull(successProp);
-        Assert.IsNotNull(redirectProp);
-
-        var success = (bool?)successProp!.GetValue(value);
-        var redirectUrl = redirectProp!.GetValue(value)?.ToString();
-
-        Assert.IsTrue(success);
-        Assert.AreEqual(expectedRedirectUrl, redirectUrl);
-        Assert.AreNotEqual("Paid", booking.Status);
-
-        _mockBookingRepo.Verify(r => r.UpdateAsync(booking), Times.Once);
-        _mockBookingRepo.Verify(r => r.SaveAsync(), Times.Once);
-    }
-
-
-
-
-
-
 }

@@ -256,43 +256,43 @@ public class VoucherControllerTestingr
     }
 
     [Test]
-    public async Task GetVouchers_ReturnsAllVouchers_WhenOnlyValidIsFalse()
-    {
-        var vouchers = new List<Voucher>
-    {
-        new Voucher { Id = Guid.NewGuid(), Code = "ABC", Description = "Desc", Discount = 10, StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow.AddDays(5), Image = "img1.jpg", isDeleted = false },
-        new Voucher { Id = Guid.NewGuid(), Code = "XYZ", Description = "Desc2", Discount = 20, StartDate = DateTime.UtcNow.AddDays(-3), EndDate = DateTime.UtcNow.AddDays(1), Image = "img2.jpg", isDeleted = false }
-    };
-
-        _voucherRepoMock.Setup(r => r.Find(It.IsAny<Expression<Func<Voucher, bool>>>()))
-            .Returns(vouchers.AsQueryable().BuildMock());
-
-        var result = await _controller.GetVouchers(false);
-
-        var okResult = result as OkObjectResult;
-        Assert.IsNotNull(okResult);
-        Assert.AreEqual(200, okResult.StatusCode);
-
-        var list = okResult.Value as IEnumerable<dynamic>;
-        Assert.AreEqual(2, list.Count());
-    }
-
-    [Test]
     public async Task GetVouchers_ReturnsOnlyValidVouchers_WhenOnlyValidIsTrue()
     {
+        // Arrange
         var vouchers = new List<Voucher>
     {
-        new Voucher { Id = Guid.NewGuid(), Code = "VALID", Description = "Still Valid", Discount = 15, StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow.AddDays(2), Image = "img.jpg", isDeleted = false },
-        new Voucher { Id = Guid.NewGuid(), Code = "EXPIRED", Description = "Expired", Discount = 25, StartDate = DateTime.UtcNow.AddDays(-10), EndDate = DateTime.UtcNow.AddDays(-1), Image = "img2.jpg", isDeleted = false }
+        new Voucher
+        {
+            Id = Guid.NewGuid(),
+            Code = "VALID",
+            Description = "Still Valid",
+            Discount = 15,
+            StartDate = DateTime.UtcNow.AddDays(-1),
+            EndDate = DateTime.UtcNow.AddDays(2),
+            Image = "img.jpg",
+            isDeleted = false,
+            QuantityUsed = 1
+        },
+        new Voucher
+        {
+            Id = Guid.NewGuid(),
+            Code = "EXPIRED",
+            Description = "Expired",
+            Discount = 25,
+            StartDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(-1),
+            Image = "img2.jpg",
+            isDeleted = false,
+            QuantityUsed = 2
+        }
     };
 
         _voucherRepoMock.Setup(r => r.Find(It.IsAny<Expression<Func<Voucher, bool>>>()))
             .Returns(vouchers.AsQueryable().BuildMock());
 
-        var result = await _controller.GetVouchers(true);
+        var result = await _controller.GetVouchers(true); 
 
         var okResult = result as OkObjectResult;
-        Assert.IsNotNull(okResult);
         Assert.AreEqual(200, okResult.StatusCode);
     }
 

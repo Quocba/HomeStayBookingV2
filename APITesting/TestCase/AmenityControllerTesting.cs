@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Newtonsoft.Json;
 using MockQueryable;
+using MockQueryable.Moq;
 
 namespace APITesting.TestCase;
 
@@ -17,12 +18,15 @@ public class AmenityControllerTesting
     private Mock<IRepository<Amenity>> _mockRepo;
     private AmenityController _controller;
     private Mock<IRepository<HomestayAmenity>> _mockHomeStayAmenityRepository;
+
     [SetUp]
     public void Setup()
     {
         _mockRepo = new Mock<IRepository<Amenity>>();
+        _mockHomeStayAmenityRepository = new Mock<IRepository<HomestayAmenity>>(); // 👈 BỔ SUNG DÒNG NÀY
         _controller = new AmenityController(_mockRepo.Object, _mockHomeStayAmenityRepository.Object);
     }
+
 
 
     [Test]
@@ -32,18 +36,27 @@ public class AmenityControllerTesting
         var fakeAmenities = new List<Amenity>
     {
         new Amenity { Id = Guid.NewGuid(), Name = "WiFi" },
+        new Amenity { Id = Guid.NewGuid(), Name = "wifi" },
         new Amenity { Id = Guid.NewGuid(), Name = "Air Conditioner" }
-    }.AsQueryable();
+    };
 
-        var mockAmenityQueryable = fakeAmenities.BuildMock(); // tạo IQueryable mock hỗ trợ async
+        var mockAmenityDbSet = fakeAmenities.AsQueryable().BuildMockDbSet();
 
-        _mockRepo.Setup(x => x.FindWithInclude()).Returns(mockAmenityQueryable);
+        _mockRepo.Setup(x => x.FindWithInclude()).Returns(mockAmenityDbSet.Object);
 
         // Act
         var result = await _controller.GetAllSystemAmenity();
 
         // Assert
-        Assert.IsNotNull(result);
+        Assert.IsInstanceOf<OkObjectResult>(result);
+
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+
+        var amenities = okResult!.Value as IEnumerable<Amenity>;
+        Assert.IsNotNull(amenities);
+
+        Assert.AreEqual(2, amenities!.Count());
     }
 
 

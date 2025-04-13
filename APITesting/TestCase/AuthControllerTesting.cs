@@ -83,7 +83,7 @@ public class AuthControllerTesting
     }
 
     [Test]
-    public void Register_EmailAlreadyExists_ThrowsException()
+    public async Task Register_EmailAlreadyExists_ReturnsConflict()
     {
         // Arrange
         var registerDto = new RegisterDTO
@@ -96,11 +96,20 @@ public class AuthControllerTesting
             Address = "Test Address",
             RoleId = 1
         };
-        _mockUserRepo.Setup(repo => repo.GetByEmailAsync(registerDto.Email)).ReturnsAsync(new User());
 
-        // Act & Assert
-        Assert.ThrowsAsync<InvalidCredentialsException>(async () => await _controller.Register(registerDto));
+        _mockUserRepo.Setup(repo => repo.GetByEmailAsync(registerDto.Email))
+                     .ReturnsAsync(new User());
+
+        // Act
+        var result = await _controller.Register(registerDto);
+
+        // Assert
+        Assert.IsInstanceOf<ConflictObjectResult>(result);
+
+        var conflictResult = result as ConflictObjectResult;
+        Assert.IsNotNull(conflictResult);
     }
+
 
     [Test]
     public async Task Register_MissingFields_Return400()
@@ -126,7 +135,6 @@ public class AuthControllerTesting
     [Test]
     public async Task Login_ValidCredentials_ReturnsOk()
     {
-        // Arrange
         var loginDto = new LoginDTO { Email = "test@example.com", Password = "Password123" };
         var user = new User
         {

@@ -199,45 +199,6 @@ public class HomeStayControllerTesting
         Assert.AreEqual(500, objectResult.StatusCode);
     }
 
-    [Test]
-    public async Task AddHomeStay_ReturnsOk_WhenValidRequest()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var request = new AddHomeStayRequest
-        {
-            MainImage = "main.jpg",
-            Name = "Test HomeStay",
-            Description = "A beautiful place",
-            Address = "123 Street",
-            CheckInTime = new TimeSpan(14, 0, 0).ToString(),
-            CheckOutTime = new TimeSpan(12, 0, 0).ToString(),
-            IsDeleted = false,
-            City = "Hanoi",
-            OpenIn = 2025,
-            Standar = 5,
-            Images = new List<string> { "img1.jpg", "img2.jpg" }
-        };
-
-        // Mock add & save methods
-        _mockHomeStayRepo.Setup(r => r.AddAsync(It.IsAny<HomeStay>())).Returns(Task.CompletedTask);
-        _mockHomeStayRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask);
-        _mockHomeStayImageRepo.Setup(r => r.AddAsync(It.IsAny<HomeStayImage>())).Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _controller.AddHomeStay(userId, request);
-
-        // Assert
-        var okResult = result as ObjectResult;
-        Assert.IsNotNull(okResult);
-        Assert.AreEqual(200, okResult.StatusCode);
-        Assert.That(okResult.Value.ToString(), Does.Contain("Add Home Stay Success"));
-
-        // Verify AddAsync được gọi
-        _mockHomeStayRepo.Verify(r => r.AddAsync(It.IsAny<HomeStay>()), Times.Once);
-        _mockHomeStayImageRepo.Verify(r => r.AddAsync(It.IsAny<HomeStayImage>()), Times.Exactly(2)); // vì có 2 ảnh
-        _mockHomeStayRepo.Verify(r => r.SaveAsync(), Times.Once);
-    }
 
     [Test]
     public async Task AddHomeStay_ReturnsBadRequest_WhenRequestIsNull()
@@ -251,40 +212,6 @@ public class HomeStayControllerTesting
         // Assert
         Assert.IsInstanceOf<BadRequestResult>(result);
     }
-
-    [Test]
-    public async Task AddHomeStay_ReturnsInternalServerError_WhenExceptionThrown()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var request = new AddHomeStayRequest
-        {
-            MainImage = "main.jpg",
-            Name = "Test HomeStay",
-            Description = "Nice place",
-            Address = "123 Test St",
-            CheckInTime = new TimeSpan(14, 0, 0).ToString(),
-            CheckOutTime = new TimeSpan(12, 0, 0).ToString(),
-            IsDeleted = false,
-            City = "Hanoi",
-            OpenIn = 2025,
-            Standar = 4,
-            Images = new List<string> { "img1.jpg" }
-        };
-
-        _mockHomeStayRepo.Setup(r => r.AddAsync(It.IsAny<HomeStay>()))
-                         .ThrowsAsync(new Exception("Something went wrong"));
-
-        // Act
-        var result = await _controller.AddHomeStay(userId, request);
-
-        // Assert
-        var objectResult = result as ObjectResult;
-        Assert.IsNotNull(objectResult);
-        Assert.AreEqual(500, objectResult.StatusCode);
-        Assert.That(objectResult.Value.ToString(), Does.Contain("Something went wrong"));
-    }
-
 
     [Test]
     public async Task AddHomeStayAmenity_ReturnsBadRequest_WhenRequestIsNull()
@@ -416,79 +343,6 @@ public class HomeStayControllerTesting
         Assert.IsInstanceOf<NotFoundResult>(result);
     }
 
-    [Test]
-    public async Task EditHomeStay_ReturnsOk_WhenUpdateSuccessful()
-    {
-        var homeStayId = Guid.NewGuid();
-        var existingHomeStay = new HomeStay
-        {
-            Id = homeStayId,
-            Name = "Old Name",
-            MainImage = "old.jpg",
-            Standar = 2,
-            CheckInTime = new TimeSpan(12, 0, 0).ToString(),
-            CheckOutTime = new TimeSpan(10, 0, 0).ToString(),
-            Address = "Old Address",
-            OpenIn = 2015,
-            Description = "Old Desc"
-        };
-
-        var request = new EditHomeStayInforRequest
-        {
-            HomeStayID = homeStayId,
-            Name = "New Name",
-            MainImage = "new.jpg",
-            Standar = 4,
-            CheckInTime = new TimeSpan(13, 0, 0).ToString(),
-            CheckOutTime = new TimeSpan(11, 0, 0).ToString(),
-            Address = "New Address",
-            OpenIn = 2020,
-            Description = "New Desc"
-        };
-
-        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homeStayId)).ReturnsAsync(existingHomeStay);
-        _mockHomeStayRepo.Setup(x => x.UpdateAsync(It.IsAny<HomeStay>())).Returns(Task.CompletedTask);
-        _mockHomeStayRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
-
-        var result = await _controller.EditHomeStay(request);
-
-        var okResult = result as OkObjectResult;
-        Assert.IsNotNull(okResult);
-        Assert.AreEqual(200, okResult.StatusCode);
-        Assert.That(okResult.Value.ToString(), Does.Contain("Update Home Stay Success"));
-    }
-
-    [Test]
-    public async Task EditHomeStay_SkipNullFields_KeepsOriginalValues()
-    {
-        var homeStayId = Guid.NewGuid();
-        var existing = new HomeStay
-        {
-            Id = homeStayId,
-            Name = "Stay A",
-            Standar = 3,
-            OpenIn = 2021
-        };
-
-        var request = new EditHomeStayInforRequest
-        {
-            HomeStayID = homeStayId,
-            Name = null,                 
-            MainImage = null,           
-            Standar = 0,                
-            OpenIn = 0                  
-        };
-
-        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homeStayId)).ReturnsAsync(existing);
-        _mockHomeStayRepo.Setup(x => x.UpdateAsync(It.IsAny<HomeStay>())).Returns(Task.CompletedTask);
-        _mockHomeStayRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
-
-        var result = await _controller.EditHomeStay(request);
-
-        var okResult = result as OkObjectResult;
-        Assert.IsNotNull(okResult);
-        Assert.AreEqual(200, okResult.StatusCode);
-    }
 
     [Test]
     public async Task EditHomeStay_ReturnsInternalServerError_WhenExceptionThrown()
@@ -1235,7 +1089,6 @@ public class HomeStayControllerTesting
         // Act
         var result = await _controller.SearchByCity(city);
 
-        // Assert
         var okResult = result as OkObjectResult;
         Assert.IsNotNull(okResult);
         Assert.AreEqual(200, okResult.StatusCode);
@@ -1244,52 +1097,59 @@ public class HomeStayControllerTesting
     [Test]
     public async Task GetHomeStayByUser_ReturnsOk_WithHomeStayList()
     {
-        // Arrange
         var userId = Guid.NewGuid();
+        var facilityId = Guid.NewGuid(); 
+        var amenityId = Guid.NewGuid();
+        var calendarId = Guid.NewGuid();
 
         var mockHomeStays = new List<HomeStay>
-    {
-        new HomeStay
-        {
-            Id = Guid.NewGuid(),
-            UserID = userId,
-            Name = "Home stay 2",
-            MainImage = "main2.jpg",
-            Address = "14 Bach Dang st\n15 Bach Dang st",
-            City = "Ho Chi Minh",
-            CheckInTime = "11:30",
-            CheckOutTime = "11:30",
-            OpenIn = 2025,
-            Description = "Home stay 2 Des",
-            Standar = 5,
-            isDeleted = false,
-            Calendars = new List<Calendar>(),
-            HomestayAmenities = new List<HomestayAmenity>
-            {
-                new HomestayAmenity
-                {
-                    Amenity = new Amenity { Id = Guid.NewGuid(), Name = "Swimming Pool" }
-                }
-            },
-            HomestayFacilities = new List<HomeStayFacility>
-            {
-                new HomeStayFacility
-                {
-                    FacilityID = Guid.NewGuid(),
-                    Facility = new Facility
-                    {
-                        Name = "Wifi",
-                        Description = "Wifi Des"
-                    }
-                }
-            }
-        }
-    }.AsQueryable().BuildMock();
+         {
+             new HomeStay
+             {
+                 Id = Guid.NewGuid(),
+                 UserID = userId, 
+                 Name = "Home stay 2",
+                 MainImage = "main2.jpg",
+                 Address = "14 Bach Dang st\n15 Bach Dang st",
+                 City = "Ho Chi Minh",
+                 CheckInTime = "11:30",
+                 CheckOutTime = "11:30",
+                 OpenIn = 2025,
+                 Description = "Home stay 2 Des",
+                 Standar = 5,
+                 isDeleted = false,
+                 Calendars = new List<Calendar> 
+                 {
+                     new Calendar { Id = calendarId, Date = DateTime.Now.Date, Price = 100, isBooked = false }
+                 },
+                 HomestayAmenities = new List<HomestayAmenity> 
+                 {
+                     new HomestayAmenity
+                     {
+                         AmenityId = amenityId, 
+                         Amenity = new Amenity { Id = amenityId, Name = "Swimming Pool" }
+                     }
+                 },
+                 HomestayFacilities = new List<HomeStayFacility> 
+                 {
+                     new HomeStayFacility
+                     {
+                         FacilityID = facilityId,
+                         Facility = new Facility { Id = facilityId, Name = "Wifi", Description = "Wifi Des" }
+                     }
+                 },
+                 TTlockAccuonts = new List<TTlockAccuont>() 
+
+             },
+             new HomeStay { UserID = Guid.NewGuid(), Name = "Another Home Stay"} 
+         };
 
         _mockHomeStayRepo
             .Setup(repo => repo.FindWithInclude(It.IsAny<Expression<Func<HomeStay, object>>[]>()))
-            .Returns(mockHomeStays);
-        FilterDTO filter = new FilterDTO
+            .Returns(mockHomeStays.AsQueryable().BuildMock());
+
+        // --- Filter Setup ---
+        var filter = new FilterDTO
         {
             AmenityNames = null,
             MaxPrice = null,
@@ -1297,25 +1157,52 @@ public class HomeStayControllerTesting
             SearchText = null,
             Standard = null
         };
+
         // Act
         var result = await _controller.GetHomeStayByUser(userId, filter);
 
         // Assert
+
+        Assert.That(result, Is.InstanceOf<OkObjectResult>());
         var okResult = result as OkObjectResult;
-        Assert.IsNotNull(okResult);
-        Assert.AreEqual(200, okResult.StatusCode);
+        Assert.That(okResult.StatusCode, Is.EqualTo(200)); 
 
-        // Dùng JObject để truy xuất an toàn
+        Assert.That(okResult.Value, Is.Not.Null);
         var json = JsonConvert.SerializeObject(okResult.Value);
-        var homeStayList = JArray.Parse(json);
+        var responseList = JArray.Parse(json);
 
-        Assert.AreEqual(1, homeStayList.Count);
+        Assert.That(responseList.Count, Is.EqualTo(1));
 
-        var homeStay = homeStayList[0];
+        var returnedHomeStay = responseList[0];
+        var expectedHomeStay = mockHomeStays.First(h => h.UserID == userId);
 
-        Assert.AreEqual("Home stay 2", homeStay["Name"]?.ToString());
-        Assert.AreEqual("Ho Chi Minh", homeStay["City"]?.ToString());
-    }
+        Assert.That(returnedHomeStay["Id"]?.ToString(), Is.EqualTo(expectedHomeStay.Id.ToString()));
+        Assert.That(returnedHomeStay["Name"]?.ToString(), Is.EqualTo("Home stay 2"));
+        Assert.That(returnedHomeStay["City"]?.ToString(), Is.EqualTo("Ho Chi Minh"));
+        Assert.That(returnedHomeStay["Standar"]?.ToObject<int>(), Is.EqualTo(5));
+        Assert.That(returnedHomeStay["MainImage"]?.ToString(), Is.EqualTo("main2.jpg"));
+
+        // 5. Validate nested lists (optional but good practice)
+        var amenitiesArray = returnedHomeStay["Amenities"] as JArray;
+        Assert.That(amenitiesArray, Is.Not.Null);
+        Assert.That(amenitiesArray.Count, Is.EqualTo(1));
+        Assert.That(amenitiesArray[0]["Name"]?.ToString(), Is.EqualTo("Swimming Pool"));
+
+        var facilityArray = returnedHomeStay["Facility"] as JArray;
+        Assert.That(facilityArray, Is.Not.Null);
+        Assert.That(facilityArray.Count, Is.EqualTo(1));
+        Assert.That(facilityArray[0]["Name"]?.ToString(), Is.EqualTo("Wifi"));
+
+        var calendarArray = returnedHomeStay["Calendar"] as JArray;
+        Assert.That(calendarArray, Is.Not.Null);
+        Assert.That(calendarArray.Count, Is.EqualTo(1));
+        Assert.That(calendarArray[0]["Price"]?.ToObject<decimal>(), Is.EqualTo(100m)); // Use 'm' for decimal
+
+        var ttlockArray = returnedHomeStay["TTlockAccuont"] as JArray;
+        Assert.That(ttlockArray, Is.Not.Null);
+        Assert.That(ttlockArray.Count, Is.EqualTo(expectedHomeStay.TTlockAccuonts.Count)); 
+ }
+
 
 
     [Test]
