@@ -175,6 +175,7 @@ namespace API.Controllers
                 if (request == null) return BadRequest();
 
                 var getHomeStay = await _homeStayRepository.GetByIdAsync(request.HomeStayID);
+                var listAmenityAlreadyExist = new List<string>();
 
                 if (getHomeStay == null) return NotFound();
                 foreach (var amenity in request.AmenityName)
@@ -185,8 +186,7 @@ namespace API.Controllers
                                                .FirstOrDefaultAsync();
                     if (existingAmenity != null)
                     {
-                        return Conflict();
-
+                        continue;
                     }
                     HomestayAmenity addAmenity = new HomestayAmenity
                     {
@@ -195,8 +195,15 @@ namespace API.Controllers
                     };
                     await _homeStayAmenity.AddAsync(addAmenity);
                     await _homeStayAmenity.SaveAsync();
+                    listAmenityAlreadyExist.Add(amenity);
                 }
-                return Ok(new { Message = "Add Amentity Success" });
+                foreach (var itemAlready in listAmenityAlreadyExist)
+                {
+
+                }
+                return Ok(new { Message = "Add Amentity Success",
+                    DuplicateAmenities = listAmenityAlreadyExist
+                });
             }
             catch (Exception ex)
             {

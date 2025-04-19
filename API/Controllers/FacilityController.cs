@@ -65,7 +65,7 @@ namespace API.Controllers
                 getFacility.Name = request.Name ?? getFacility.Name;
                 getFacility.Description = request.Description ?? getFacility.Description;
                 getFacility.CreateAt = getFacility.CreateAt;
-                getFacility.UpdateAt = getFacility.UpdateAt;
+                getFacility.UpdateAt = DateTime.Now;
                 await _facilityRepository.UpdateAsync(getFacility);
                 await _facilityRepository.SaveAsync();
                 return Ok(new { Message = "Update Facility Success" });

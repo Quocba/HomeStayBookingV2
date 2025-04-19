@@ -19,7 +19,7 @@ namespace API.Controllers
         {
             Random random = new Random();
             string generatedCode;
-            bool isDuplicate;
+            bool isDuplicate;   
 
             do
             {
@@ -53,7 +53,7 @@ namespace API.Controllers
         public async Task<IActionResult> EditVoucher(Guid id, [FromBody] EditVoucherDTO voucherDto)
         {
             if (voucherDto == null)
-            {
+            {   
                 return BadRequest(new { Message = "Invalid voucher data" });
             }
 
