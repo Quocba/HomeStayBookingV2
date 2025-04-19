@@ -40,7 +40,7 @@ namespace API.Controllers
             var bookings = await _bookingRepository
                                  .FindWithInclude()
                                  .Include(x => x.Calendars)
-                                 .ThenInclude(x => x.HomeStay)
+                                 .ThenInclude(x => x.HomeStay)  
                                  .Where(x => x.UserID == userId)
                                  .OrderByDescending(x => x.CheckInDate)
                                  .ToListAsync();
@@ -286,13 +286,13 @@ namespace API.Controllers
                     TransactionID = getTransaction.ID,
                     Status = false,
                     Transaction = getTransaction
-                };
+                };  
                 await _refundsRepository.AddAsync(addRefuns);
                 await _refundsRepository.SaveAsync();
                 await _calendarRepository.SaveAsync();
                 await _bookingRepository.SaveAsync();
 
-                return Redirect("https://cust-homestay.vercel.app");
+                return Redirect("http://localhost:3000");
             }
             catch(Exception ex)
             {
@@ -401,7 +401,7 @@ namespace API.Controllers
                         c.Booking.Id,
                         c.Booking.CheckInDate,
                         c.Booking.CheckOutDate,
-                        c.Booking.UnitPrice,
+                        c.Booking.UnitPrice,    
                         c.Booking.TotalPrice,
                         c.Booking.Status,
                         c.Booking.ReasonCancel,

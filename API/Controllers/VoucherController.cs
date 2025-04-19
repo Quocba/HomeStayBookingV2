@@ -27,6 +27,10 @@ namespace API.Controllers
                 isDuplicate = _voucherRepository.Find(v => v.Code == generatedCode).Any();
             } while (isDuplicate);
 
+            if (voucher.Discount > 60 || voucher.Discount < 1)
+            {
+                return BadRequest(new {Message = "Discount can be not less than 1 && Cannot be greater than 60" });
+            }
             Guid voucherID = Guid.NewGuid();
             Voucher createVoucher = new Voucher
             {
