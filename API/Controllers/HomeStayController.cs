@@ -310,6 +310,7 @@ namespace API.Controllers
             }
         }
 
+
         [HttpPost("get-all-home-stay")]
         public async Task<IActionResult> GetAllHomeStay([FromBody] FilterDTO request)
         {
@@ -433,7 +434,7 @@ namespace API.Controllers
                 HomeStayImage = getDetail.HomestayImages!.Select(image => new
                 {
                     Image = image.Image,
-                }),
+                }).ToList(),
                 Amenities = getDetail.HomestayAmenities!.Select(ha => new
                 {
                     ha.Amenity.Id,
@@ -739,4 +740,3 @@ namespace API.Controllers
 
     }
 }
-
