@@ -19,6 +19,12 @@ namespace BusinessObject.Entities
         public Guid UserID { get; set; }
         [ForeignKey("UserID")]
         public User User { get; set; }
+
+        public Guid BookingID { get; set; }
+
+        [ForeignKey("BookingID")]
+        public virtual Booking Booking { get; set; }
+
         [JsonIgnore]
         [ForeignKey("HomeStayID")]
         public HomeStay HomeStay { get; set; }
