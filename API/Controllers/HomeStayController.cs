@@ -342,7 +342,6 @@ namespace API.Controllers
             {
                 query = query.Where(h => h.Calendars!.Any(c =>
                     c.isDeleted == false &&
-                    c.Date == today &&
                     (!request.MinPrice.HasValue || c.Price >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || c.Price <= request.MaxPrice.Value)
                 ));
