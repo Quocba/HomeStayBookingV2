@@ -11,5 +11,7 @@ namespace BusinessObject.DTO
         public Guid HomestayID { get; set; }
         public int Rating { get; set; }
         public string Description { get; set; }
+
+        public Guid BookingID { get; set; }
     }
 }

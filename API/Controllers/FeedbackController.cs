@@ -31,6 +31,14 @@ namespace API.Controllers
             if (userId == Guid.Empty) return BadRequest("User not found");
             try
             {
+                var checkFeedBack = await _feedbackRepository.FindWithInclude()
+                                       .FirstOrDefaultAsync(f => f.BookingID == feedbackDto.BookingID);
+                if (checkFeedBack != null)
+                {
+                    return Conflict(new {Message = "You have already submitted a review for this booking." });
+                }
+
+
                 var feedback = new FeedBack
                 {
                     Id = Guid.NewGuid(),
@@ -38,7 +46,8 @@ namespace API.Controllers
                     HomeStay = await _homeStayRepository.GetByIdAsync(feedbackDto.HomestayID),
                     Rating = feedbackDto.Rating,
                     Description = feedbackDto.Description,
-                    IsReply = false
+                    IsReply = false,
+                    BookingID = feedbackDto.BookingID
                 };
                     
                 await _feedbackRepository.AddAsync(feedback);
@@ -62,6 +71,8 @@ namespace API.Controllers
                 if (userId == Guid.Empty || feedbackDto == null) return BadRequest();
 
                 var feedback = await _feedbackRepository.GetByIdAsync(id);
+
+
                 if (feedback == null || feedback.IsReply)
                 {
                     return NotFound("Feedback not found.");
