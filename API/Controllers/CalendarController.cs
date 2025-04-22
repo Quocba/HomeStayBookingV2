@@ -59,6 +59,7 @@ namespace API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] List<CalendarDTO> calendarDTOs)
         {
+            List<DateTime> CalendarAlready = new List<DateTime>();
             try
             {
                 if (calendarDTOs == null || !calendarDTOs.Any())
