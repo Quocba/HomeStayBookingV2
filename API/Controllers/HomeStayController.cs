@@ -388,7 +388,8 @@ namespace API.Controllers
                     hf.Facility.Name,
                     hf.Facility.Description
                 }).ToList(),
-                User = h.FeedBacks!.Select(fb => new
+
+                FeedBack = h.FeedBacks!.Select(fb => new
                 {
                     fb.Id,
                     fb.Rating,

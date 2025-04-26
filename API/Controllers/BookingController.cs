@@ -442,8 +442,8 @@ namespace API.Controllers
                     ws.Cells[row, 1].Value = booking.Id.ToString();
                     ws.Cells[row, 2].Value = booking.CheckInDate.ToString("dd-MM-yyyy");
                     ws.Cells[row, 3].Value = booking.CheckOutDate.ToString("dd-MM-yyyy");
-                    ws.Cells[row, 4].Value = $"{booking.UnitPrice} VND";
-                    ws.Cells[row, 5].Value = $"{booking.TotalPrice} VND";
+                    ws.Cells[row, 4].Value = $"{booking.UnitPrice.ToString("C", new System.Globalization.CultureInfo("vi-VN"))}";
+                    ws.Cells[row, 5].Value = $"{booking.TotalPrice.ToString("C", new System.Globalization.CultureInfo("vi-VN"))}";
                     ws.Cells[row, 6].Value = booking.Status;
                     ws.Cells[row, 7].Value = booking.ReasonCancel;
                     ws.Cells[row, 8].Value = booking.HomeStayName;
@@ -654,7 +654,7 @@ $@"
                     <div class=""price-detail"">
                         <p>Check-In-Date: <span>{booking.CheckInDate.ToString("dd/MM/yyy")} $</span></p>
                         <p>Check-Out-Date: <span>{booking.CheckOutDate.ToString("dd/MM/yyy")} $</span></p>
-                        <p>Total: <span>{booking.TotalPrice} $</span></p>
+                        <p>Total: <span>{booking.TotalPrice.ToString("C", new System.Globalization.CultureInfo("vi-VN"))} VND</span></p>
                     </div>
                 </div>
             </body>
