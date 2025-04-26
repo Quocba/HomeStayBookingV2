@@ -225,7 +225,7 @@ namespace API.Controllers
                     <div class=""price-detail"">
                         <p>Check-In-Date: <span>{booking.CheckInDate.ToString("dd/MM/yyy")} $</span></p>
                         <p>Check-Out-Date: <span>{booking.CheckOutDate.ToString("dd/MM/yyy")} $</span></p>
-                        <p>Total: <span>{booking.TotalPrice} $</span></p>
+                        <p>Total: <span>{booking.TotalPrice} VND</span></p>
                         <p>Status: <span>{booking.Status} </span></p>
                     </div>
                 </div>

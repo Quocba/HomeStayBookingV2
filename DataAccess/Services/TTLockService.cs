@@ -35,7 +35,7 @@ namespace DataAccess.Services
                 ["username"] = account.TTLockUserName!,
                 ["password"] = account.Password!,
                 ["grant_type"] = "password"
-            };
+            };      
 
             var tokenResponse = await _client.PostAsync("https://euapi.ttlock.com/oauth2/token", new FormUrlEncodedContent(tokenForm));
             var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
