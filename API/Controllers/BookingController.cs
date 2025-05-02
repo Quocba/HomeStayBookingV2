@@ -100,10 +100,10 @@ namespace API.Controllers
             var firstDate = sortedDates.First();
             var lastDate = sortedDates.Last();
             var replaceCheckInDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
-            var replaceCheckOutDate = homeStay.CheckInTime.Replace("PM", "").Replace("AM", "");
+            var replaceCheckOutDate = homeStay.CheckOutTime.Replace("PM", "").Replace("AM", "");
 
             DateTime checkInDate = firstDate.Date.Add(TimeSpan.Parse(replaceCheckInDate));
-            DateTime checkOutDate = lastDate.AddDays(1).Date.Add(TimeSpan.Parse(replaceCheckOutDate));
+            DateTime checkOutDate = lastDate.Date.Add(TimeSpan.Parse(replaceCheckOutDate));
 
             if (firstDate == lastDate)
                 checkOutDate = firstDate.Date.AddDays(1).Add(TimeSpan.Parse(homeStay.CheckOutTime.Replace("PM", "").Replace("AM", "")));

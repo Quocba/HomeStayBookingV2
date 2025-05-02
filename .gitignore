@@ -342,3 +342,17 @@ healthchecksdb
 WebApi/appsettings.Development.json
 VSIXCore/
 /API/images
+/Docker
+/CACHED
+/CANCELED
+/cd
+/cls
+/ERROR
+/HomeStayBooking.sln
+/[build
+/[internal]
+/[runtime
+/[build
+/[internal]
+/[runtime
+/[runtime
