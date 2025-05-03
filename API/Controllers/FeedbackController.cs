@@ -56,7 +56,7 @@ namespace API.Controllers
                 return Ok(feedback);
             }
             catch (Exception ex) {
-                return StatusCode(500, ex.ToString());
+                return StatusCode(500, new { Message = "An error occurred while processing the feedback.", Error = ex.Message });
             }
         }
 

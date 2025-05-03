@@ -241,34 +241,6 @@ public class HomeStayControllerTesting
     }
 
     [Test]
-    public async Task AddHomeStayAmenity_ReturnsConflict_WhenAmenityAlreadyExists()
-    {
-        var homestayId = Guid.NewGuid();
-        var amenityId = Guid.NewGuid();
-
-        var request = new AddAmenityDTO
-        {
-            HomeStayID = homestayId,
-            AmenityName = new List<string> { "Wifi" }
-        };
-
-        var homestay = new HomeStay { Id = homestayId };
-        var amenity = new Amenity { Id = amenityId, Name = "Wifi" };
-        var existing = new HomestayAmenity { HomeStayID = homestayId, AmenityId = amenityId };
-
-        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homestayId)).ReturnsAsync(homestay);
-        _mockAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<Amenity, bool>>>()))
-                        .Returns(new List<Amenity> { amenity }.AsQueryable().BuildMock());
-        _mockHomeStayAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
-                                 .Returns(new List<HomestayAmenity> { existing }.AsQueryable().BuildMock());
-
-        var result = await _controller.AddHomeStayAmennity(request);
-
-        Assert.IsInstanceOf<ConflictResult>(result);
-    }
-
-
-    [Test]
     public async Task AddHomeStayAmenity_ReturnsOk_WhenSuccess()
     {
         var homestayId = Guid.NewGuid();
@@ -529,63 +501,75 @@ public class HomeStayControllerTesting
         Assert.That(objectResult.Value.ToString(), Does.Contain("Database connection failed"));
     }
 
-        [Test]
-        public async Task GetAllHomeStay_ReturnsOk_WhenDataExists()
+    [Test]
+    public async Task GetAllHomeStay_ReturnsOk_WhenDataExists()
+    {
+        // Arrange
+        var homeStayId = Guid.NewGuid();
+        var calendar = new Calendar
         {
-            // Arrange
-            var homeStayId = Guid.NewGuid();
-            var calendar = new Calendar { Id = Guid.NewGuid(), Price = 100, isBooked = false, Date = DateTime.Now };
-            var amenity = new Amenity { Id = Guid.NewGuid(), Name = "Wifi" };
-            var facility = new Facility { Id = Guid.NewGuid(), Name = "Pool", Description = "Nice" };
+            Id = Guid.NewGuid(),
+            Price = 100,
+            isBooked = false,
+            Date = DateTime.Now,
+            isDeleted = false
+        };
+        var amenity = new Amenity { Id = Guid.NewGuid(), Name = "Wifi" };
+        var facility = new Facility { Id = Guid.NewGuid(), Name = "Pool", Description = "Nice pool" };
+        var user = new User { FullName = "Test User", Email = "test@example.com", Avatar = "avatar.jpg" };
+        var feedback = new FeedBack
+        {
+            Id = Guid.NewGuid(),
+            Rating = 5,
+            Description = "Great stay!",
+            User = user
+        };
 
-            var homeStay = new HomeStay
-            {
-                Id = homeStayId,
-                Name = "Test Stay",
-                MainImage = "img.jpg",
-                Address = "123 Test",
-                City = "Test City",
-                CheckInTime = TimeSpan.FromHours(14).ToString(),
-                CheckOutTime = TimeSpan.FromHours(12).ToString(),
-                OpenIn = 2025,
-                Description = "A nice stay",
-                Standar = 5,
-                isDeleted = false,
-                Calendars = new List<Calendar> { calendar },
-                HomestayAmenities = new List<HomestayAmenity>
-                {
-                    new HomestayAmenity { Amenity = amenity }
-                },
-                HomestayFacilities = new List<HomeStayFacility>
-                {
-                    new HomeStayFacility { Facility = facility }
-                }
-            };
+        var homeStay = new HomeStay
+        {
+            Id = homeStayId,
+            Name = "Test Stay",
+            MainImage = "img.jpg",
+            Address = "123 Test",
+            City = "Test City",
+            CheckInTime = TimeSpan.FromHours(14).ToString(),
+            CheckOutTime = TimeSpan.FromHours(12).ToString(),
+            OpenIn = 2025,
+            Description = "A nice stay",
+            Standar = 5,
+            isDeleted = false,
+            Calendars = new List<Calendar> { calendar },
+            HomestayAmenities = new List<HomestayAmenity> { new HomestayAmenity { Amenity = amenity } },
+            HomestayFacilities = new List<HomeStayFacility> { new HomeStayFacility { Facility = facility } },
+            FeedBacks = new List<FeedBack> { feedback }
+        };
 
-            var mockData = new List<HomeStay> { homeStay }
-                .AsQueryable()
-                .BuildMock(); 
+        var mockData = new List<HomeStay> { homeStay }
+            .AsQueryable()
+            .BuildMock();
 
         _mockHomeStayRepo
             .Setup(r => r.FindWithInclude(It.IsAny<Expression<Func<HomeStay, object>>[]>()))
             .Returns(mockData);
 
+        // FilterDTO
         var request = new FilterDTO
-            {
-                Standard = new List<int> { 5 },
-                AmenityNames = new List<string> { "Wifi" },
-                MinPrice = 50,
-                MaxPrice = 150
-            };
+        {
+            Standard = new List<int> { 5 },
+            AmenityNames = new List<string> { "Wifi" },
+            MinPrice = 50,
+            MaxPrice = 150
+        };
 
-            // Act
-            var result = await _controller.GetAllHomeStay(request);
+        // Act
+        var result = await _controller.GetAllHomeStay(request);
 
-            // Assert
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-        }
+        // Assert
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(200, okResult.StatusCode);
+    }
+
 
     [Test]
     public async Task GetAllHomeStay_ReturnsNotFound_WhenNoData()

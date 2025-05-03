@@ -45,11 +45,14 @@ public class BookingControllerTesting
         _mockHomeStayRepo = new Mock<IRepository<HomeStay>>();
         _mockEmailSender = new Mock<IEmailSender>();
         _mockPayOSService = new Mock<IPayOSService>();
-        _mockConfiguration = new Mock<IConfiguration>();
+        _mockConfiguration = new Mock<IConfiguration>(); 
         _mockCalendarRepo = new Mock<IRepository<BusinessObject.Entities.Calendar>>();
         _mockTransactionRepo = new Mock<IRepository<BusinessObject.Entities.Transaction>>();
         _mockRefundRepo = new Mock<IRepository<BusinessObject.Entities.Refunds>>();
         _mockUserVoucherRepo = new Mock<IRepository<UserVoucher>>();
+
+        _mockConfiguration.Setup(c => c["Base:Url"]).Returns("http://localhost:3000"); 
+
         _controller = new BookingController(
             _mockBookingRepo.Object,
             _mockVoucherRepo.Object,
@@ -64,6 +67,7 @@ public class BookingControllerTesting
             _mockRefundRepo.Object
         );
     }
+
 
     [Test]
     public async Task GetBookingHistory_UserNotFound_ReturnsNotFound()
@@ -235,7 +239,7 @@ public class BookingControllerTesting
         var calendar2 = new BusinessObject.Entities.Calendar
         {
             Id = calendarId2,
-            Date = DateTime.Today.AddDays(1),
+            Date = DateTime.Today.AddDays(2),
             Price = 500000,
             HomeStayID = homeStayId,
             BookingID = null,
@@ -247,6 +251,9 @@ public class BookingControllerTesting
             Id = homeStayId,
             CheckInTime = "14:00",
             CheckOutTime = "12:00",
+            Name = "Test HomeStay",
+            Address = "Test Address",
+            MainImage = "img.jpg"
         };
 
         _mockUserRepo.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
@@ -255,23 +262,29 @@ public class BookingControllerTesting
             x.FindAsync(It.IsAny<Expression<Func<BusinessObject.Entities.Calendar, bool>>>()))
             .ReturnsAsync(new List<BusinessObject.Entities.Calendar> { calendar1, calendar2 }.AsQueryable());
 
-
         _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homeStayId)).ReturnsAsync(homeStay);
 
         _mockBookingRepo.Setup(x => x.AddAsync(It.IsAny<Booking>())).Returns(Task.CompletedTask);
         _mockCalendarRepo.Setup(x => x.UpdateAsync(It.IsAny<BusinessObject.Entities.Calendar>())).Returns(Task.CompletedTask);
-        _mockBookingRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
         _mockCalendarRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+        _mockBookingRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+        _mockVoucherRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+        _mockUserVoucherRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+
         _mockEmailSender.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
+        // Act
         var result = await _controller.CreateBooking(userId, bookingDto);
 
         // Assert
         Assert.NotNull(result);
         var okResult = result as OkObjectResult;
+        Assert.NotNull(okResult);
         Assert.AreEqual(200, okResult.StatusCode);
+
     }
+
 
     [Test]
     public async Task CreateBooking_EmptyCalenders_ReturnsBadRequest()
@@ -758,7 +771,7 @@ public class BookingControllerTesting
         var redirect = result as RedirectResult;
 
         Assert.IsNotNull(redirect);
-        Assert.AreEqual("https://cust-homestay.vercel.app", redirect!.Url);
+        Assert.AreEqual("http://localhost:3000", redirect!.Url);
 
         Assert.That(booking.Status, Is.EqualTo("Canceled"));
 
