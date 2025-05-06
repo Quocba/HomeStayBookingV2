@@ -172,6 +172,87 @@ public class HomeStayControllerTesting
     }
 
     [Test]
+    public async Task DeleteHomeStayFacility_ReturnsOk_WhenFacilityExists()
+    {
+        // Arrange
+        var homeStayId = Guid.NewGuid();
+        var facilityId = Guid.NewGuid();
+
+        var mockFacilityList = new List<HomeStayFacility>
+    {
+        new HomeStayFacility { HomeStayID = homeStayId, FacilityID = facilityId }
+    }.AsQueryable().BuildMock();
+
+        _mockHomeStayFacilityRepo
+            .Setup(r => r.Find(It.IsAny<Expression<Func<HomeStayFacility, bool>>>()))
+            .Returns(mockFacilityList);
+
+        // Act
+        var result = await _controller.DeleteHomeStayFacility(homeStayId, facilityId);
+
+        // Assert
+        Assert.IsInstanceOf<OkObjectResult>(result); // Adjust based on expected outcome
+    }
+
+    [Test]
+    public async Task DeleteHomeStayFacility_ReturnsBadRequest_WhenNullId()
+    {
+        // Arrange
+        Guid? homeStayId = null;
+        Guid? facilityId = null;
+
+        // Act
+        var result = await _controller.DeleteHomeStayFacility(homeStayId.Value, facilityId.Value);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [Test]
+    public async Task DeleteHomeStayFacility_ReturnsNotFound_WhenLargeId()
+    {
+        // Arrange
+        var homeStayId = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"); // Large GUID
+        var facilityId = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"); // Large GUID
+
+        var emptyList = new List<HomeStayFacility>().AsQueryable().BuildMock();
+
+        _mockHomeStayFacilityRepo
+            .Setup(r => r.Find(It.IsAny<Expression<Func<HomeStayFacility, bool>>>()))
+            .Returns(emptyList);
+
+        // Act
+        var result = await _controller.DeleteHomeStayFacility(homeStayId, facilityId);
+
+        // Assert
+        Assert.IsInstanceOf<NotFoundResult>(result);
+    }
+
+
+
+    [Test]
+    public async Task DeleteHomeStayFacility_ReturnsNotFound_WhenFacilityNotFound()
+    {
+        // Arrange
+        var homeStayId = Guid.NewGuid();
+        var facilityId = Guid.NewGuid();
+
+        var emptyList = new List<HomeStayFacility>().AsQueryable().BuildMock();
+
+        _mockHomeStayFacilityRepo
+            .Setup(r => r.Find(It.IsAny<Expression<Func<HomeStayFacility, bool>>>()))
+            .Returns(emptyList);
+
+        // Act
+        var result = await _controller.DeleteHomeStayFacility(homeStayId, facilityId);
+
+        // Assert
+        Assert.IsInstanceOf<NotFoundResult>(result);
+    }
+
+
+
+    [Test]
     public async Task DeleteHomeStayFacility_ReturnsOk_WhenDeletedSuccessfully()
     {
         // Arrange
@@ -299,6 +380,141 @@ public class HomeStayControllerTesting
         Assert.IsNotNull(okResult);
         Assert.That(okResult.StatusCode, Is.EqualTo(200));
         Assert.That(okResult.Value.ToString(), Does.Contain("Add Amentity Success"));
+    }
+
+    [Test]
+    public async Task AddHomeStayAmenity_ReturnsBadRequest_WhenAmenityListIsEmpty()
+    {
+        // Arrange
+        var homestayId = Guid.NewGuid();
+        var amenityId = Guid.NewGuid();
+
+        var request = new AddAmenityDTO
+        {
+            HomeStayID = homestayId,
+            AmenityName = new List<string>() // Danh sách tiện nghi rỗng
+        };
+
+        var homestay = new HomeStay { Id = homestayId };
+        var amenity = new Amenity { Id = amenityId, Name = "Wifi" };
+
+        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homestayId)).ReturnsAsync(homestay);
+        _mockAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<Amenity, bool>>>()))
+                        .Returns(new List<Amenity> { amenity }.AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
+                                 .Returns(new List<HomestayAmenity>().AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.AddAsync(It.IsAny<HomestayAmenity>())).Returns(Task.CompletedTask);
+        _mockHomeStayAmenityRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AddHomeStayAmennity(request);
+
+        // Assert
+        Assert.IsInstanceOf<BadRequestResult>(result);
+    }
+
+    [Test]
+    public async Task AddHomeStayAmenity_ReturnsBadRequest_WhenAmenityNameIsEmpty()
+    {
+        // Arrange
+        var homestayId = Guid.NewGuid();
+        var amenityId = Guid.NewGuid();
+
+        var request = new AddAmenityDTO
+        {
+            HomeStayID = homestayId,
+            AmenityName = new List<string> { "" } // Tên tiện nghi rỗng
+        };
+
+        var homestay = new HomeStay { Id = homestayId };
+        var amenity = new Amenity { Id = amenityId, Name = "Wifi" };
+
+        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homestayId)).ReturnsAsync(homestay);
+        _mockAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<Amenity, bool>>>()))
+                        .Returns(new List<Amenity> { amenity }.AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
+                                 .Returns(new List<HomestayAmenity>().AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.AddAsync(It.IsAny<HomestayAmenity>())).Returns(Task.CompletedTask);
+        _mockHomeStayAmenityRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AddHomeStayAmennity(request);
+
+        // Assert
+        Assert.IsInstanceOf<BadRequestResult>(result);
+    }
+
+
+
+    [Test]
+    public async Task AddHomeStayAmenity_ReturnsOk_WhenMultipleAmenitiesAdded()
+    {
+        // Arrange
+        var homestayId = Guid.NewGuid();
+        var amenityId1 = Guid.NewGuid();
+        var amenityId2 = Guid.NewGuid();
+
+        var request = new AddAmenityDTO
+        {
+            HomeStayID = homestayId,
+            AmenityName = new List<string> { "Wifi", "Air Conditioning" }
+        };
+
+        var homestay = new HomeStay { Id = homestayId };
+        var amenities = new List<Amenity>
+    {
+        new Amenity { Id = amenityId1, Name = "Wifi" },
+        new Amenity { Id = amenityId2, Name = "Air Conditioning" }
+    };
+
+        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homestayId)).ReturnsAsync(homestay);
+        _mockAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<Amenity, bool>>>()))
+                        .Returns(amenities.AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
+                                 .Returns(new List<HomestayAmenity>().AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.AddAsync(It.IsAny<HomestayAmenity>())).Returns(Task.CompletedTask);
+        _mockHomeStayAmenityRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AddHomeStayAmennity(request);
+
+        // Assert
+        Assert.IsInstanceOf<OkObjectResult>(result);
+        var okResult = result as OkObjectResult;
+        Assert.That(okResult.StatusCode, Is.EqualTo(200));
+        Assert.That(okResult.Value.ToString(), Does.Contain("Add Amentity Success"));
+    }
+
+    [Test]
+    public async Task AddHomeStayAmenity_ReturnsOk_WhenAmenityNameIsMaxLength()
+    {
+        // Arrange
+        var homestayId = Guid.NewGuid();
+        var amenityId = Guid.NewGuid();
+        var maxLengthName = new string('a', 255); // Tên tiện nghi có độ dài tối đa 255 ký tự
+
+        var request = new AddAmenityDTO
+        {
+            HomeStayID = homestayId,
+            AmenityName = new List<string> { maxLengthName }
+        };
+
+        var homestay = new HomeStay { Id = homestayId };
+        var amenity = new Amenity { Id = amenityId, Name = maxLengthName };
+
+        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homestayId)).ReturnsAsync(homestay);
+        _mockAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<Amenity, bool>>>()))
+                        .Returns(new List<Amenity> { amenity }.AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.Find(It.IsAny<Expression<Func<HomestayAmenity, bool>>>()))
+                                 .Returns(new List<HomestayAmenity>().AsQueryable().BuildMock());
+        _mockHomeStayAmenityRepo.Setup(x => x.AddAsync(It.IsAny<HomestayAmenity>())).Returns(Task.CompletedTask);
+        _mockHomeStayAmenityRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AddHomeStayAmennity(request);
+
+        // Assert
+        Assert.IsInstanceOf<OkObjectResult>(result);
     }
 
     [Test]
