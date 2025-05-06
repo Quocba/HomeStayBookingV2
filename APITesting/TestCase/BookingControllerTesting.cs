@@ -161,6 +161,62 @@ public class BookingControllerTesting
     }
 
     [Test]
+    public async Task GetBookingHistory_CheckInDateBoundary_ReturnsBookingList()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var bookings = new List<Booking>
+    {
+        new Booking
+        {
+            Id = Guid.NewGuid(),
+            CheckInDate = DateTime.MaxValue.AddDays(-1), // near boundary
+            CheckOutDate = DateTime.MaxValue,
+            TotalPrice = 2000000,
+            UnitPrice = 2000000,
+            Status = "Completed",
+            Calendars = new List<BusinessObject.Entities.Calendar>
+            {
+                new BusinessObject.Entities.Calendar
+                {
+                    HomeStay = new HomeStay
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Max Stay",
+                        Address = "Address 2",
+                        MainImage = "https://example.com/max.jpg"
+                    }
+                }
+            },
+            HomeStayName = "Max Stay",
+            HomeStayAddress = "Address 2",
+            HomeStayImage = "https://example.com/max.jpg"
+        }
+    };
+
+        var mockBookingQueryable = bookings.AsQueryable().BuildMock();
+
+        _mockUserRepo.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync(new User());
+        _mockBookingRepo.Setup(repo => repo.FindWithInclude()).Returns(mockBookingQueryable);
+
+        // Act
+        var result = await _controller.GetBookingHistory(userId) as ObjectResult;
+
+        // Assert
+        Assert.IsNotNull(result); // 👉 tránh lỗi null
+        Assert.AreEqual(200, result.StatusCode);
+
+        var json = JsonConvert.SerializeObject(result.Value);
+        var obj = JObject.Parse(json);
+
+        Assert.IsNotNull(obj);
+        Assert.IsTrue(obj.HasValues);
+    }
+
+
+
+
+    [Test]
     public async Task CreateBooking_BookingDtoNull_ReturnsBadRequest()
     {
         // Arrange
@@ -283,6 +339,79 @@ public class BookingControllerTesting
         Assert.NotNull(okResult);
         Assert.AreEqual(200, okResult.StatusCode);
 
+    }
+
+    [Test]
+    public async Task CreateBooking_MinimumCalendarDate_ReturnsOk()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var homeStayId = Guid.NewGuid();
+        var calendarId1 = Guid.NewGuid();
+
+        var bookingDto = new BookingDTO
+        {
+            Calenders = new List<BookingCalendarDTO>
+        {
+            new BookingCalendarDTO { CalenderID = calendarId1 }
+        },
+            VoucherCode = null,
+            IsOnline = true
+        };
+
+        var user = new User
+        {
+            Id = userId,
+            FullName = "Test User",
+            Email = "test@example.com"
+        };
+
+        var calendar = new BusinessObject.Entities.Calendar
+        {
+            Id = calendarId1,
+            Date = DateTime.Today, // Hoặc DateTime.MinValue.AddDays(2),
+            Price = 500000,
+            HomeStayID = homeStayId,
+            BookingID = null,
+            isBooked = false
+        };
+
+        var homeStay = new HomeStay
+        {
+            Id = homeStayId,
+            CheckInTime = "14:00",
+            CheckOutTime = "12:00",
+            Name = "Test HomeStay",
+            Address = "Test Address",
+            MainImage = "img.jpg"
+        };
+
+        _mockUserRepo.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
+
+        _mockCalendarRepo.Setup(x =>
+            x.FindAsync(It.IsAny<Expression<Func<BusinessObject.Entities.Calendar, bool>>>()))
+            .ReturnsAsync(new List<BusinessObject.Entities.Calendar> { calendar }.AsQueryable());
+
+        _mockHomeStayRepo.Setup(x => x.GetByIdAsync(homeStayId)).ReturnsAsync(homeStay);
+
+        _mockBookingRepo.Setup(x => x.AddAsync(It.IsAny<Booking>())).Returns(Task.CompletedTask);
+        _mockCalendarRepo.Setup(x => x.UpdateAsync(It.IsAny<BusinessObject.Entities.Calendar>())).Returns(Task.CompletedTask);
+        _mockCalendarRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+        _mockBookingRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+        _mockVoucherRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+        _mockUserVoucherRepo.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
+
+        _mockEmailSender.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.CreateBooking(userId, bookingDto);
+
+        // Assert
+        Assert.NotNull(result);
+        var okResult = result as OkObjectResult;
+        Assert.NotNull(okResult);
+        Assert.AreEqual(200, okResult.StatusCode);
     }
 
 

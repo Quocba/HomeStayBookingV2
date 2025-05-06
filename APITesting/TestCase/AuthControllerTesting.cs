@@ -769,8 +769,4 @@ public class AuthControllerTesting
         Assert.AreEqual(400, result.StatusCode);
     }
 
-
-
-
-
 }
